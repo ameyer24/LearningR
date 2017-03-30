@@ -34,6 +34,10 @@ str(CounterDB.DF.Gathered)
 CounterDB.DF.GatheredSep <- separate(CounterDB.DF.Gathered, date, c("Month", "Year"))
 
 ## I think this new DF looks great.
-## I could imaginee adding on data from other counter CSV files to make a "master dataframe"
+## I could imagine adding on data from other counter CSV files to make a "master dataframe"
 ## and then de-duplicating.
 
+## Just for fun, I can "unite" and spread" this data back into something like the original form.
+CounterDB.DF.GatheredUnited <-unite(CounterDB.DF.GatheredSep, date, c(Month, Year),sep=".")
+CounterDB.DF.Standard <- spread(CounterDB.DF.GatheredUnited, date, usage)
+## Need to re-order columns by month. Otherwise great!
