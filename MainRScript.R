@@ -3,7 +3,9 @@
 install.packages("tidyverse")
 install.packages("readxl")
 library(tidyverse)
+#library(tidyr)
 library(readxl)
+
 ## READING THE FILES
 #### Ideally would read every file from a given folder.
 #### Make the files self readable
@@ -16,80 +18,81 @@ folder <- "C:/Users/ameyer/Desktop/CounterReports"
 ## This sorts the Counter Reports into CSV or XL file formats.
 file_list_csv <- list.files(path=folder, pattern="*.csv")
 file_list_xl <- list.files(path=folder, pattern="*.xl*")
+## This iterates through the list and creates dataframes for each report
 
 for (i in 1:length(file_list_csv)){
-  assign(file_list_csv[i],
-  read_csv(paste(folder, file_list_csv[i], sep='/'),skip=7))
+  assign(paste0("CounterReport",i,".DF"), read_csv(paste(folder, file_list_csv[i], sep='/'),skip=7))
 }
 
 for (i in 1:length(file_list_xl)){
-  assign(file_list_xl[i],
-  read_excel(paste(folder, file_list_xl[i], sep='/'),skip=7))
+  assign(paste0("CounterReport",i,".DF"), read_excel(paste(folder, file_list_xl[i], sep='/'),skip=7))
 }
+## Let's pretend that we only have excel reports now...
 ## We now have all the counter reports loaded as dataframes.
-## Clean up those dataframes now. 
-## Write some conditional test that will validate we are looking at Database Report 1
-
-
-DB1 <- EBSCODB12015.csv
-DB2 <- EBSCODB12016.csv
-
-DB1$Reporting.Period.Total <-NULL
-
-
-for (i in 1:length(file_list)){
-  file_list[i]$Reporting.Period.Total <-NULL
-}
-
-
-IngestCounterDB1.DF <- read.csv("C:/Users/ameyer/Desktop/EBSCODB12016.csv",
-                          skip = 7, # skip the introductions
-                          header = T) # this data has headers
-
-
-str(IngestCounterDB1.DF) # this provides an overview of the structure for this dataframe. Looks good!
-
-## CLEANING AND STRUCTURING
-## Tidying up dataframe.
-## I'm using the r package tidyr for this
-## This loads that package
-library(tidyr)
-
-## Don't need the "Reporting Period Total because that doesn't matter.
-IngestCounterDB1.DF$Reporting.Period.Total <-NULL
-str(IngestCounterDB1.DF) # confirms that the column has been deleted.
-
-
-## This command gathers together the data to make one long DF that seperates each variable.
-CounterDB.DF.Gathered <- gather(IngestCounterDB1.DF, date, usage, Jan.2016:Dec.2016)
-str(CounterDB.DF.Gathered)
-## Need to update/improve that command to accept any data - that is, don't specify the column headings.
-##Seperate the date field into year and month
-CounterDB.DF.GatheredSep <- separate(CounterDB.DF.Gathered, date, c("Month", "Year"))
-
-## I think this new DF looks great.
-## I could imagine adding on data from other counter CSV files to make a "master dataframe"
-## and then de-duplicating.
-
-## Just for fun, I can "unite" and spread" this data back into something like the original form.
-CounterDB.DF.GatheredUnited <-unite(CounterDB.DF.GatheredSep, date, c(Month, Year),sep=".")
-CounterDB.DF.Standard <- spread(CounterDB.DF.GatheredUnited, date, usage)
-## Need to re-order columns by month. Otherwise great!
-
-
-
-## This for loop assumes that everything is a DB1 report. Maybe I could sort them first...
+## Clean up those dataframes now.
+colnames(CounterReport2.DF)
 
 # ## Try to define my own function.
-# read.counter <-function(csvfile){
-#   newDF <- read.csv(csvfile,skip = 7, header=T)
-#   newDF <- newDF$Reporting.Period.Total <- NULL
-#   #separate(newDF, date, c("Month", "Year"))
-# }
 # 
-# for (i in 1:length(file_list)){
-#   assign(file_list[i],
-#   read.counter(paste(folder, file_list[i], sep='/')))
+# CounterCleaner <- function(x){
+#   x <- subset(x, select = -c(5))
+#   x <- gather(x, date, usage,)
+#   x
 # }
+# CLEANEDDF2 <- CounterCleaner(CounterReport2.DF)
+# CLEANEDDF2
 # 
 # ## End of my function section.
+
+
+## Remove the "Reporting Period Total" column. Because we don't need it.
+## This is stupid. Remove by column name instead. This is dangerous!
+
+## Loop this somehow.
+
+CounterReport1.DF <- subset(CounterReport1.DF, select = -c(5))
+CounterReport2.DF <- subset(CounterReport2.DF, select = -c(5))
+CounterReport3.DF <- subset(CounterReport3.DF, select = -c(5))
+CounterReport4.DF <- subset(CounterReport4.DF, select = -c(5))
+CounterReport5.DF <- subset(CounterReport5.DF, select = -c(5))
+CounterReport6.DF <- subset(CounterReport6.DF, select = -c(5))
+CounterReport7.DF <- subset(CounterReport7.DF, select = -c(5))
+CounterReport8.DF <- subset(CounterReport8.DF, select = -c(5))
+CounterReport9.DF <- subset(CounterReport9.DF, select = -c(5))
+CounterReport10.DF <- subset(CounterReport10.DF, select = -c(5))
+
+## This command gathers together the data to make one long DF that seperates each variable.
+CounterReport1.DF <- gather(CounterReport1.DF, date, usage, 5:ncol(CounterReport1.DF))
+CounterReport2.DF <- gather(CounterReport2.DF, date, usage, 5:ncol(CounterReport2.DF))
+CounterReport3.DF <- gather(CounterReport3.DF, date, usage, 5:ncol(CounterReport3.DF))
+CounterReport4.DF <- gather(CounterReport4.DF, date, usage, 5:ncol(CounterReport4.DF))
+CounterReport5.DF <- gather(CounterReport5.DF, date, usage, 5:ncol(CounterReport5.DF))
+CounterReport6.DF <- gather(CounterReport6.DF, date, usage, 5:ncol(CounterReport6.DF))
+CounterReport7.DF <- gather(CounterReport7.DF, date, usage, 5:ncol(CounterReport7.DF))
+CounterReport8.DF <- gather(CounterReport8.DF, date, usage, 5:ncol(CounterReport8.DF))
+CounterReport9.DF <- gather(CounterReport9.DF, date, usage, 5:ncol(CounterReport9.DF))
+CounterReport10.DF <- gather(CounterReport10.DF, date, usage, 5:ncol(CounterReport10.DF))
+
+## This command seperates out the data in month and year.
+CounterReport1.DF <- separate(CounterReport1.DF, date, c("Month", "Year"))
+CounterReport2.DF <- separate(CounterReport2.DF, date, c("Month", "Year"))
+CounterReport3.DF <- separate(CounterReport3.DF, date, c("Month", "Year"))
+CounterReport4.DF <- separate(CounterReport4.DF, date, c("Month", "Year"))
+CounterReport5.DF <- separate(CounterReport5.DF, date, c("Month", "Year"))
+CounterReport6.DF <- separate(CounterReport6.DF, date, c("Month", "Year"))
+CounterReport7.DF <- separate(CounterReport7.DF, date, c("Month", "Year"))
+CounterReport8.DF <- separate(CounterReport8.DF, date, c("Month", "Year"))
+CounterReport9.DF <- separate(CounterReport9.DF, date, c("Month", "Year"))
+CounterReport10.DF <- separate(CounterReport10.DF, date, c("Month", "Year"))
+
+## All of those dataframes look great!
+## Merge them into one main dataframe!
+
+MasterCounterReport <- rbind(CounterReport1.DF, CounterReport2.DF, CounterReport3.DF,CounterReport4.DF,CounterReport5.DF, CounterReport6.DF, CounterReport7.DF, CounterReport8.DF, CounterReport9.DF, CounterReport10.DF)
+
+## And I think this is tidy dataset!
+## Just for fun, I can "unite" and spread" this data back into something like the original form.
+BasicCounterReport <- unite(MasterCounterReport, date, c(Month,Year), sep=".")
+BasicCounterReport <- spread(BasicCounterReport, date, usage)
+
+
