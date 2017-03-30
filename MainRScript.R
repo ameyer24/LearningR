@@ -19,9 +19,10 @@ file_list <- list.files(path=folder, pattern="*.csv")
 ## This for loop assumes that everything is a DB1 report. Maybe I could sort them first...
 
 ## Try to define my own function.
-read.counter <-function(x){
-  read.csv(x,skip = 7, header=T)
-  
+read.counter <-function(csvfile){
+  newDF <- read.csv(csvfile,skip = 7, header=T)
+  newDF <- newDF$Reporting.Period.Total <- NULL
+  #separate(newDF, date, c("Month", "Year"))
 }
 
 for (i in 1:length(file_list)){
@@ -29,6 +30,7 @@ for (i in 1:length(file_list)){
   read.counter(paste(folder, file_list[i], sep='/')))
 }
 
+## End of my function section.
 
 for (i in 1:length(file_list)){
   assign(file_list[i],
