@@ -1,47 +1,35 @@
-# This is a learning experiment where I try and write a script in R that can handle Counter Reports.
-# I'm going to add lots of notes along the way to help the code be readable and talk about the changes I'd like to make.
-
-
+## This is a learning experiment where I try and write a script in R that can handle Counter Reports.
+## I'm going to add lots of notes along the way to help the code be readable and talk about the changes I'd like to make.
+install.packages("tidyverse")
+install.packages("readxl")
+library(tidyverse)
+library(readxl)
 ## READING THE FILES
 #### Ideally would read every file from a given folder.
 #### Make the files self readable
 #### Sort each Counter Report into it's own category.
-#### Test the new branch.
 
 #### Using this code for this section - http://www.reed.edu/data-at-reed/resources/R/reading_and_writing.html
 
-
-## Setting up the folder pathway and creating a file_list variable.
+## Setting up the folder pathway and creating a file_list variables.
 folder <- "C:/Users/ameyer/Desktop/CounterReports"
-file_list <- list.files(path=folder, pattern="*.csv")
+## This sorts the Counter Reports into CSV or XL file formats.
+file_list_csv <- list.files(path=folder, pattern="*.csv")
+file_list_xl <- list.files(path=folder, pattern="*.xl*")
+
+for (i in 1:length(file_list_csv)){
+  assign(file_list_csv[i],
+  read_csv(paste(folder, file_list_csv[i], sep='/'),skip=7))
+}
+
+for (i in 1:length(file_list_xl)){
+  assign(file_list_xl[i],
+  read_excel(paste(folder, file_list_xl[i], sep='/'),skip=7))
+}
+## We now have all the counter reports loaded as dataframes.
+## Clean up those dataframes now. 
 ## Write some conditional test that will validate we are looking at Database Report 1
 
-## This for loop assumes that everything is a DB1 report. Maybe I could sort them first...
-
-## Try to define my own function.
-read.counter <-function(csvfile){
-  newDF <- read.csv(csvfile,skip = 7, header=T)
-  newDF <- newDF$Reporting.Period.Total <- NULL
-  #separate(newDF, date, c("Month", "Year"))
-}
-
-for (i in 1:length(file_list)){
-  assign(file_list[i],
-  read.counter(paste(folder, file_list[i], sep='/')))
-}
-
-## End of my function section.
-
-for (i in 1:length(file_list)){
-  assign(file_list[i],
-  read.csv(paste(folder, file_list[i], sep='/'),skip = 7, header=T))
-}
-
-
-
-
-## This is good. All the files are now dataframes in R.
-## Need to clean up each of those dataframes, though.
 
 DB1 <- EBSCODB12015.csv
 DB2 <- EBSCODB12016.csv
@@ -87,3 +75,21 @@ CounterDB.DF.GatheredSep <- separate(CounterDB.DF.Gathered, date, c("Month", "Ye
 CounterDB.DF.GatheredUnited <-unite(CounterDB.DF.GatheredSep, date, c(Month, Year),sep=".")
 CounterDB.DF.Standard <- spread(CounterDB.DF.GatheredUnited, date, usage)
 ## Need to re-order columns by month. Otherwise great!
+
+
+
+## This for loop assumes that everything is a DB1 report. Maybe I could sort them first...
+
+# ## Try to define my own function.
+# read.counter <-function(csvfile){
+#   newDF <- read.csv(csvfile,skip = 7, header=T)
+#   newDF <- newDF$Reporting.Period.Total <- NULL
+#   #separate(newDF, date, c("Month", "Year"))
+# }
+# 
+# for (i in 1:length(file_list)){
+#   assign(file_list[i],
+#   read.counter(paste(folder, file_list[i], sep='/')))
+# }
+# 
+# ## End of my function section.
