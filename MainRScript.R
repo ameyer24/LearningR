@@ -1,38 +1,34 @@
 ## This is a learning experiment where I try and write a script in R that can handle Counter Reports.
 ## I'm going to add lots of notes along the way to help the code be readable and talk about the changes I'd like to make.
-install.packages("tidyverse")
-install.packages("readxl")
+## SETTING THINGS UP
+#install.packages("tidyverse")
+#install.packages("readxl")
 library(tidyverse)
-#library(tidyr)
 library(readxl)
 
 ## READING THE FILES
-#### Ideally would read every file from a given folder.
-#### Make the files self readable
-#### Sort each Counter Report into it's own category.
+#### This reads every CSV or Excel file from a given folder. Source for this section - http://www.reed.edu/data-at-reed/resources/R/reading_and_writing.html
 
-#### Using this code for this section - http://www.reed.edu/data-at-reed/resources/R/reading_and_writing.html
-
-## Setting up the folder pathway and creating a file_list variables.
+## Setting up the folder pathway and creating the file_list variables.
 folder <- "C:/Users/ameyer/Desktop/CounterReports"
 ## This sorts the Counter Reports into CSV or XL file formats.
 file_list_csv <- list.files(path=folder, pattern="*.csv")
 file_list_xl <- list.files(path=folder, pattern="*.xl*")
-## This iterates through the list and creates dataframes for each report
+##
 
+## This iterates through the list of CSV filese and creates dataframes for each report
 for (i in 1:length(file_list_csv)){
   assign(paste0("CounterReport",i,".DF"), read_csv(paste(folder, file_list_csv[i], sep='/'),skip=7))
 }
 
+## This iterates through list of Excel files and creates dataframes for each report.
+## Updated naming conventions to prevent overriding existing dataframes.
 for (i in 1:length(file_list_xl)){
-  assign(paste0("CounterReport",i,".DF"), read_excel(paste(folder, file_list_xl[i], sep='/'),skip=7))
+  assign(paste0("CounterReport",i+(length(file_list_csv)),".DF"), read_excel(paste(folder, file_list_xl[i], sep='/'),skip=7))
 }
-## Let's pretend that we only have excel reports now...
-## We now have all the counter reports loaded as dataframes.
-## Clean up those dataframes now.
-colnames(CounterReport2.DF)
 
-# ## Try to define my own function.
+
+### Try to define my own function.
 # 
 # CounterCleaner <- function(x){
 #   x <- subset(x, select = -c(5))
