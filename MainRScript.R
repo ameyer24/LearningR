@@ -76,10 +76,22 @@ MasterCounterReport <- rbind(CounterReport1, CounterReport2, CounterReport3,Coun
 ## Deduplicate the Master Counter Report.
 MasterCounterReport1 <- unique(MasterCounterReport)
 
+##
+
 ## It would be nice to organize the columns of the basic counter report before export.
 BasicCounterReport <- unite(MasterCounterReport1, date, c(Month,Year), sep=".")
 BasicCounterReport <- spread(BasicCounterReport, date, usage)
 
+
+#### Exploring the Data
+## See what publishers we have in the dataset.
+unique(c(BasicCounterReport$Publisher))
+
+## See what platforms we have in the dataset.
+unique(c(BasicCounterReport$Platform))
+
+## See what databases we have in the dataset.
+unique(c(BasicCounterReport$Database))
 
 ## Just for fun... write this to Excel.
 
