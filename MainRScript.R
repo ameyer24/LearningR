@@ -47,13 +47,7 @@ CounterCleaner <- function(x){
   return(x)
 }
 
-## Apply this function to all of the data frames.
-## List all dataframes.
-# CRlist <-list(CounterReport1, CounterReport2, CounterReport3,CounterReport4,CounterReport5, CounterReport6, CounterReport7, CounterReport8, CounterReport9, CounterReport10, CounterReport11, CounterReport12)
-# 
-# CRlist2 <- lapply(CRlist,CounterCleaner)
-# 
-# lapply(DFlist,CounterCleaner)
+## I know this is a mess. Do this another way?
 
 CounterReport1 <- CounterCleaner(CounterReport1)
 CounterReport2 <- CounterCleaner(CounterReport2)
@@ -73,14 +67,18 @@ CounterReport15 <- CounterCleaner(CounterReport15)
 
 MasterCounterReport <- rbind(CounterReport1, CounterReport2, CounterReport3,CounterReport4,CounterReport5, CounterReport6, CounterReport7, CounterReport8, CounterReport9, CounterReport10, CounterReport11, CounterReport12, CounterReport13, CounterReport14, CounterReport15)
 
+## Mess over.
+
 ## Deduplicate the Master Counter Report.
 MasterCounterReport1 <- unique(MasterCounterReport)
 
-##
+## Change month abbreviation to number to make sorting easier.
+MasterCounterReport1$Month <- match(tolower(MasterCounterReport1$Month), tolower(month.abb))
 
-## It would be nice to organize the columns of the basic counter report before export.
-BasicCounterReport <- unite(MasterCounterReport1, date, c(Month,Year), sep=".")
-BasicCounterReport <- spread(BasicCounterReport, date, usage)
+## United Year and then Month to make sorting easier.
+BasicCounterReport <- unite(MasterCounterReport1, Date, c(Year,Month), sep="-")
+BasicCounterReport <- spread(BasicCounterReport, Date, usage, convert=TRUE)
+BasicCounterReport  <- arrange(BasicCounterReport,Platform)
 
 
 #### Exploring the Data
