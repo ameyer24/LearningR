@@ -1,43 +1,78 @@
-# This is a learning experiment where I try and write a script in R that can handle Counter Reports.
-# I'm going to add lots of notes along the way to help the code be readable and talk about the changes I'd like to make.
+## OVERVIEW AND SET UP
+## Right now, this reads all Counter DB1 Reports (R4) from a given folder and creates a dataframe for them.
 
+## Installing packages and loading them
+#install.packages("tidyverse")
+#install.packages("readxl")
+#install.packages("xlsx")
+library(xlsx)
+library(tidyverse)
+library(readxl)
 
-## READING THE FILES
-#### Ideally would read every file from a given folder.
-#### Make the files self readable
-#### Sort each Counter Report into it's own category.
+## READING THE FILES AND TIDYING THE DATA
 
+## Setting up the folder pathway.
+folder <- "C:/Users/ameyer/Desktop/CounterReports"
 
-IngestCounterDB1.DF <- read.csv("C:/Users/ameyer/Desktop/EBSCODB12016.csv",
-                          skip = 7, # skip the introductions
-                          header = T) # this data has headers
+## Define "Cleaner" functions.
+## This function reads from CSV files.
+DB1r4_CSV_Cleaner <- function(file){
+  x <- read_csv(file, skip=7, col_names = TRUE)
+  x <- subset(x, select = -c(5))
+  x <- gather(x, date, usage, 5:ncol(x))
+  x <- separate(x, date, c("Month", "Year"))
+  return(x)
+}
 
+## This function reads from Excel files.
+DB1r4_xl_Cleaner <- function(file){
+  x <- read_excel(file, skip=7, col_names = TRUE)
+  x <- subset(x, select = -c(5))
+  x <- gather(x, date, usage, 5:ncol(x))
+  x <- separate(x, date, c("Month", "Year"))
+  return(x)
+}
 
-str(IngestCounterDB1.DF) # this provides an overview of the structure for this dataframe. Looks good!
+load_csv_data <- function(path) {
+  files <- dir(path, pattern ="*.CSV", full.names = TRUE)
+  tables <- lapply(files, DB1r4_CSV_Cleaner)
+  do.call(rbind, tables)
+}
 
-## CLEANING AND STRUCTURING
-## Tidying up dataframe.
-## I'm using the r package tidyr for this
-## This loads that package
-library(tidyr)
+load_xl_data <- function(path) {
+  files <- dir(path, pattern ="*.xl*", full.names = TRUE)
+  tables <- lapply(files, DB1r4_xl_Cleaner)
+  do.call(rbind, tables)
+}
 
-## Don't need the "Reporting Period Total because that doesn't matter.
-IngestCounterDB1.DF$Reporting.Period.Total <-NULL
-str(IngestCounterDB1.DF) # confirms that the column has been deleted.
+All_data <- rbind(load_csv_data(folder),load_xl_data(folder))
+Tidy_DB1_data <- unique(All_data)
 
+## Change month abbreviation to number to make sorting easier.
+Tidy_DB1_data$Month <- match(tolower(Tidy_DB1_data$Month), tolower(month.abb))
 
-## This command gathers together the data to make one long DF that seperates each variable.
-CounterDB.DF.Gathered <- gather(IngestCounterDB1.DF, date, usage, Jan.2016:Dec.2016)
-str(CounterDB.DF.Gathered)
-## Need to update/improve that command to accept any data - that is, don't specify the column headings.
-##Seperate the date field into year and month
-CounterDB.DF.GatheredSep <- separate(CounterDB.DF.Gathered, date, c("Month", "Year"))
+##TRANSFORM AND VISUALIZE AND MODEL THE DATA.
 
-## I think this new DF looks great.
-## I could imagine adding on data from other counter CSV files to make a "master dataframe"
-## and then de-duplicating.
+## I'm spreading the data back into a more familiar view. Things more about this.
+## Unite Year and Month to make sorting easier.
+BasicCounterReport <- unite(Tidy_DB1_data, Date, c(Year,Month), sep="-")
+BasicCounterReport <- spread(BasicCounterReport, Date, usage, convert=TRUE)
+BasicCounterReport  <- arrange(BasicCounterReport,Platform)
 
-## Just for fun, I can "unite" and spread" this data back into something like the original form.
-CounterDB.DF.GatheredUnited <-unite(CounterDB.DF.GatheredSep, date, c(Month, Year),sep=".")
-CounterDB.DF.Standard <- spread(CounterDB.DF.GatheredUnited, date, usage)
-## Need to re-order columns by month. Otherwise great!
+## See what publishers we have in the dataset.
+unique(c(BasicCounterReport$Publisher))
+
+## See what platforms we have in the dataset.
+unique(c(BasicCounterReport$Platform))
+
+## See what databases we have in the dataset.
+unique(c(BasicCounterReport$Database))
+
+## Divide data into actual databases and EDS results
+## This adds a new column for the total.
+BasicCounterReport$Total <- rowSums(BasicCounterReport[5:46])
+
+## Just for fun... write this to Excel.
+
+write.xlsx(BasicCounterReport, "C:/Users/ameyer/Desktop/BasicCounterReport.xlsx",sheetName = "data")
+write.xlsx(Tidy_DB1_data, "C:/Users/ameyer/Desktop/TidyReport.xlsx",sheetName = "data")
