@@ -9,9 +9,7 @@ library(xlsx)
 library(tidyverse)
 library(readxl)
 
-## READING THE FILES
-## This reads every CSV or Excel file from a given folder.
-## Source for this section - http://www.reed.edu/data-at-reed/resources/R/reading_and_writing.html
+## READING THE FILES AND TIDYING THE DATA
 
 ## Setting up the folder pathway.
 folder <- "C:/Users/ameyer/Desktop/CounterReports"
@@ -53,13 +51,14 @@ Tidy_DB1_data <- unique(All_data)
 ## Change month abbreviation to number to make sorting easier.
 Tidy_DB1_data$Month <- match(tolower(Tidy_DB1_data$Month), tolower(month.abb))
 
-## United Year and then Month to make sorting easier.
+##TRANSFORM AND VISUALIZE AND MODEL THE DATA.
+
+## I'm spreading the data back into a more familiar view. Things more about this.
+## Unite Year and Month to make sorting easier.
 BasicCounterReport <- unite(Tidy_DB1_data, Date, c(Year,Month), sep="-")
 BasicCounterReport <- spread(BasicCounterReport, Date, usage, convert=TRUE)
 BasicCounterReport  <- arrange(BasicCounterReport,Platform)
 
-
-#### Exploring the Data
 ## See what publishers we have in the dataset.
 unique(c(BasicCounterReport$Publisher))
 
@@ -72,7 +71,6 @@ unique(c(BasicCounterReport$Database))
 ## Divide data into actual databases and EDS results
 ## This adds a new column for the total.
 BasicCounterReport$Total <- rowSums(BasicCounterReport[5:46])
-
 
 ## Just for fun... write this to Excel.
 
