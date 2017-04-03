@@ -56,7 +56,7 @@ Tidy_DB1_data$Month <- match(tolower(Tidy_DB1_data$Month), tolower(month.abb))
 ## I'm spreading the data back into a more familiar view. Things more about this.
 ## Unite Year and Month to make sorting easier.
 BasicCounterReport <- unite(Tidy_DB1_data, Date, c(Year,Month), sep="-")
-BasicCounterReport <- spread(BasicCounterReport, Date, usage, convert=TRUE)
+BasicCounterReport <- spread(BasicCounterReport, Date, usage, convert=TRUE,fill = 0)
 BasicCounterReport  <- arrange(BasicCounterReport,Platform)
 
 ## See what publishers we have in the dataset.
