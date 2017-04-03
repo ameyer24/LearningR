@@ -91,6 +91,19 @@ unique(c(BasicCounterReport$Platform))
 ## See what databases we have in the dataset.
 unique(c(BasicCounterReport$Database))
 
+## Divide data into actual databases and EDS results
+## This adds a new column for the total.
+BasicCounterReport$Total <- rowSums(BasicCounterReport[5:46])
+
+
+
+
+
+
+
+
+
+
 ## Just for fun... write this to Excel.
 
 # write.xlsx(MasterCounterReport, "C:/Users/ameyer/Desktop/CounterReports/MasterCounterReport.xlsx",sheetName = "data")
