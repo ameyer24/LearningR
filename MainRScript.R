@@ -74,4 +74,5 @@ BasicCounterReport$Total <- rowSums(BasicCounterReport[5:46])
 
 ## Just for fun... write this to Excel.
 
-write.xlsx(BasicCounterReport, "C:/Users/ameyer/Desktop/CounterReports/BasicCounterReport.xlsx",sheetName = "data")
+write.xlsx(BasicCounterReport, "C:/Users/ameyer/Desktop/BasicCounterReport.xlsx",sheetName = "data")
+write.xlsx(Tidy_DB1_data, "C:/Users/ameyer/Desktop/TidyReport.xlsx",sheetName = "data")
