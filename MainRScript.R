@@ -49,8 +49,9 @@ Tidy_DB1_data <-unique(rbind(load_csv_data(folder),load_xl_data(folder)))
 
 ## Change month abbreviation to number to make sorting easier.
 Tidy_DB1_data$Month <- match(tolower(Tidy_DB1_data$Month), tolower(month.abb))
+## Remove space from the column name.
 Tidy_DB1_data <- plyr::rename(Tidy_DB1_data, replace = c("User Activity" = "User_Activity"))
-names(Tidy_DB1_data)
+
 #################################################
 ##TRANSFORM AND VISUALIZE AND MODEL THE DATA.
 #################################################
@@ -76,12 +77,24 @@ Pricing_Info <- unique(Pricing_Info)
 ## Write this to CSV.
 write.csv(Pricing_Info, file="C:/Users/ameyer/Desktop/Pricing_Info.csv")
 ## Expect the user to enter pricing information for each of these resources.
+install.packages("zoo")
+library(zoo)
 
 ## GRAPH THIS STUFF
 ## Way too much data. Got to start small.
 ## Limit to JSTOR data
 JSTOR_data <- filter(Tidy_DB1_data, Database=="JSTOR")
-ggplot(data=JSTOR_data) + geom_line(mapping = aes(x=Month, y=Usage))
+JSTOR_data$Usage <- as.numeric(JSTOR_data$Usage)
+JSTOR_data2 <- unite(JSTOR_data, Date, c(Month, Year), sep="-")
+JSTOR_data2$Date <- as.yearmon
+JSTOR_data2$Date
+#
+as.yearmon("Nov-2016")
+
+JSTOR_data2$Date <- as_date(JSTOR_data2$Date)
+class(JSTOR_data2$Date)
+
+ggplot(data=JSTOR_data2) + geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity))
 
 
 ## I'm spreading the data back into a more familiar view. Things more about this.
