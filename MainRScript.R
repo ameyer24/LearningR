@@ -49,7 +49,8 @@ Tidy_DB1_data <-unique(rbind(load_csv_data(folder),load_xl_data(folder)))
 
 ## Change month abbreviation to number to make sorting easier.
 Tidy_DB1_data$Month <- match(tolower(Tidy_DB1_data$Month), tolower(month.abb))
-
+Tidy_DB1_data <- plyr::rename(Tidy_DB1_data, replace = c("User Activity" = "User_Activity"))
+names(Tidy_DB1_data)
 #################################################
 ##TRANSFORM AND VISUALIZE AND MODEL THE DATA.
 #################################################
@@ -77,7 +78,10 @@ write.csv(Pricing_Info, file="C:/Users/ameyer/Desktop/Pricing_Info.csv")
 ## Expect the user to enter pricing information for each of these resources.
 
 ## GRAPH THIS STUFF
-ggplot(data=Tidy_DB1_data) + geom_point(mapping = aes(x=Year, y=Usage))
+## Way too much data. Got to start small.
+## Limit to JSTOR data
+JSTOR_data <- filter(Tidy_DB1_data, Database=="JSTOR")
+ggplot(data=JSTOR_data) + geom_line(mapping = aes(x=Month, y=Usage))
 
 
 ## I'm spreading the data back into a more familiar view. Things more about this.
