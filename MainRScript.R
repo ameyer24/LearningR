@@ -8,6 +8,7 @@
 library(xlsx)
 library(tidyverse)
 library(readxl)
+library(zoo)
 
 ## READING THE FILES AND TIDYING THE DATA
 
@@ -17,19 +18,21 @@ folder <- "C:/Users/ameyer/Desktop/CounterReports"
 ## Define "Cleaner" functions.
 ## This function reads from CSV files.
 DB1r4_CSV_Cleaner <- function(file){
+  require(zoo)
   x <- read_csv(file, skip=7, col_names = TRUE)
   x <- subset(x, select = -c(5))
   x <- gather(x, Date, Usage, 5:ncol(x))
-  x <- separate(x, Date, c("Month", "Year"))
+  x$Date <- as.yearmon(x$Date, "%b-%Y")
   return(x)
 }
 
 ## This function reads from Excel files.
 DB1r4_xl_Cleaner <- function(file){
+  require(zoo)
   x <- read_excel(file, skip=7, col_names = TRUE)
   x <- subset(x, select = -c(5))
   x <- gather(x, Date, Usage, 5:ncol(x))
-  x <- separate(x, Date, c("Month", "Year"))
+  x$Date <- as.yearmon(x$Date, "%b-%Y")
   return(x)
 }
 
@@ -46,11 +49,12 @@ load_xl_data <- function(path) {
 }
 
 Tidy_DB1_data <-unique(rbind(load_csv_data(folder),load_xl_data(folder)))
-
-## Change month abbreviation to number to make sorting easier.
-Tidy_DB1_data$Month <- match(tolower(Tidy_DB1_data$Month), tolower(month.abb))
+## Do a little more tidying.
 ## Remove space from the column name.
 Tidy_DB1_data <- plyr::rename(Tidy_DB1_data, replace = c("User Activity" = "User_Activity"))
+## Convert Usage to a number.
+Tidy_DB1_data$Usage <- as.numeric(Tidy_DB1_data$Usage)
+class(Tidy_DB1_data$Date)
 
 #################################################
 ##TRANSFORM AND VISUALIZE AND MODEL THE DATA.
@@ -70,8 +74,10 @@ unique(c(Tidy_DB1_data$Database))
 ## I ant to create a blank dataframe for manual data entry.
 ## This should help.
 ## This could be improved with pipes.
-Pricing_Info <- unique(subset(Tidy_DB1_data, select=c(Database,Platform,Year)))
+Pricing_Info <- unique(subset(Tidy_DB1_data, select=c(Database,Platform,Date)))
 Pricing_Info$Price <-"$0"
+Pricing_Info$Year <- year(Pricing_Info$Date)
+##Drop the date field...
 Pricing_Info <- spread(Pricing_Info, Year, Price, convert=TRUE, fill="$0")
 Pricing_Info <- unique(Pricing_Info)  
 ## Write this to CSV.
