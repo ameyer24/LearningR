@@ -45,14 +45,14 @@ load_xl_data <- function(path) {
   do.call(rbind, tables)
 }
 
-All_data <- rbind(load_csv_data(folder),load_xl_data(folder))
-Tidy_DB1_data <- unique(All_data)
+Tidy_DB1_data <-unique(rbind(load_csv_data(folder),load_xl_data(folder)))
 
 ## Change month abbreviation to number to make sorting easier.
 Tidy_DB1_data$Month <- match(tolower(Tidy_DB1_data$Month), tolower(month.abb))
 
+##############################################
 ##TRANSFORM AND VISUALIZE AND MODEL THE DATA.
-
+#################################################
 ## I'm spreading the data back into a more familiar view. Things more about this.
 ## Unite Year and Month to make sorting easier.
 BasicCounterReport <- unite(Tidy_DB1_data, Date, c(Year,Month), sep="-")
@@ -60,19 +60,26 @@ BasicCounterReport <- spread(BasicCounterReport, Date, usage, convert=TRUE,fill 
 BasicCounterReport  <- arrange(BasicCounterReport,Platform)
 
 ## See what publishers we have in the dataset.
-unique(c(BasicCounterReport$Publisher))
+unique(c(Tidy_DB1_data$Publisher))
 
 ## See what platforms we have in the dataset.
-unique(c(BasicCounterReport$Platform))
+unique(c(Tidy_DB1_data$Platform))
 
 ## See what databases we have in the dataset.
-unique(c(BasicCounterReport$Database))
+databaselist <- unique(c(Tidy_DB1_data$Database))
+## It would be useful to import pricing data about each database.
+
+## This should help.
+databaselist <- unique(c(Tidy_DB1_data$Database))
+yearlist <- unique(c(Tidy_DB1_data$Year))
+
+
+write.csv(databaselist, file="C:/Users/ameyer/Desktop/databaselist.csv")
 
 ## Divide data into actual databases and EDS results
 ## This adds a new column for the total.
 BasicCounterReport$Total <- rowSums(BasicCounterReport[5:46])
 
 ## Just for fun... write this to Excel.
-
 write.xlsx(BasicCounterReport, "C:/Users/ameyer/Desktop/BasicCounterReport.xlsx",sheetName = "data")
 write.xlsx(Tidy_DB1_data, "C:/Users/ameyer/Desktop/TidyReport.xlsx",sheetName = "data")
