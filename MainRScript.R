@@ -19,8 +19,8 @@ folder <- "C:/Users/ameyer/Desktop/CounterReports"
 DB1r4_CSV_Cleaner <- function(file){
   x <- read_csv(file, skip=7, col_names = TRUE)
   x <- subset(x, select = -c(5))
-  x <- gather(x, date, Usage, 5:ncol(x))
-  x <- separate(x, date, c("Month", "Year"))
+  x <- gather(x, Date, Usage, 5:ncol(x))
+  x <- separate(x, Date, c("Month", "Year"))
   return(x)
 }
 
@@ -28,8 +28,8 @@ DB1r4_CSV_Cleaner <- function(file){
 DB1r4_xl_Cleaner <- function(file){
   x <- read_excel(file, skip=7, col_names = TRUE)
   x <- subset(x, select = -c(5))
-  x <- gather(x, date, Usage, 5:ncol(x))
-  x <- separate(x, date, c("Month", "Year"))
+  x <- gather(x, Date, Usage, 5:ncol(x))
+  x <- separate(x, Date, c("Month", "Year"))
   return(x)
 }
 
@@ -83,7 +83,7 @@ ggplot(data=Tidy_DB1_data) + geom_point(mapping = aes(x=Year, y=Usage))
 ## I'm spreading the data back into a more familiar view. Things more about this.
 ## Unite Year and Month to make sorting easier.
 BasicCounterReport <- unite(Tidy_DB1_data, Date, c(Year,Month), sep="-")
-BasicCounterReport <- spread(BasicCounterReport, Date, usage, convert=TRUE,fill = 0)
+BasicCounterReport <- spread(BasicCounterReport, Date, Usage, convert=TRUE,fill = 0)
 BasicCounterReport  <- arrange(BasicCounterReport,Platform)
 
 ## Divide data into actual databases and EDS results
