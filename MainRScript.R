@@ -72,27 +72,57 @@ unique(c(Tidy_DB1_data$Platform))
 ## See what databases we have in the dataset.
 unique(c(Tidy_DB1_data$Database))
 
+summary_TD <- Tidy_DB1_data %>%
+  group_by(Database, User_Activity) %>%
+  summarize(total = sum(Usage)) %>%
+  arrange(desc(total))
+
+## Summarize Usage on the Calendar Year
+Summary1 <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  group_by(Database, Publisher, User_Activity, Year) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  spread(Year, Total_Usage) %>%
+  write_csv("C:/Users/ameyer/Desktop/Summary1.csv")
+
+## Summarize on the Fiscal Year
+Summary2 <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  mutate(Month = month(Date)) %>%
+  ## group into fiscal years (or academic terms?)
+  
+  group_by(Database, Publisher, User_Activity, Year) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  spread(Year, Total_Usage)
+
+%>%
+  write_csv("C:/Users/ameyer/Desktop/Summary2.csv")
 
 #############################
 ## PRICING INFORMATION
 
-Pricing_Information <- Tidy_DB1_data %>%
+DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   distinct(Database, Publisher, Year) %>%
   mutate(Price ="") %>%
   spread(Year,Price) %>%
-  mutate(Notes = "")
-
-## This function writes the dataframe to Excel for the user to enter pricing information.
-
-write.xlsx(Pricing_Information, "C:/Users/ameyer/Desktop/Pricing_Information.xlsx",sheetName = "blank pricing information")
+  mutate(Notes = "") %>%
+  write_csv("C:/Users/ameyer/Desktop/DB_Pricing_Blank.csv")
+  
 
 ## Imports the pricing information file.
 ##
-Pricing_Information_Test <- read_csv("C:/Users/ameyer/Desktop/Pricing_Information.csv", col_names = TRUE)
+Database_Pricing <- read_csv("C:/Users/ameyer/Desktop/DB_Pricing.csv", col_names = TRUE)
 
 #############################
-##Cost per user work
+##Cost per use work
+## Starting with just Business Source Complete
+ROI1 <- Tidy_DB1_data %>%
+  filter(Database=="Business Source Complete") %>%
+  mutate(Year = year(Date)) %>%
+  group_by(User_Activity, Year) %>%
+  summarize(Total = sum(Usage)) %>%
+  arrange(desc(Year))
 
 
 #############################
@@ -111,13 +141,9 @@ Tidy_DB1_data %>%
 
 
 ## End Grpahing Section
-  
-  
-summary_TD <- Tidy_DB1_data %>%
-  group_by(Database, User_Activity) %>%
-  summarize(total = sum(Usage)) %>%
-  arrange(desc(total))
 
+###############################
+##Exporting
 ## I'm spreading the data back into a more familiar view. Things more about this.
 ## Unite Year and Month to make sorting easier.
 
