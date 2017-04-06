@@ -2,9 +2,10 @@
 ## Right now, this reads all Counter DB1 Reports (R4) from a given folder and creates a dataframe for them.
 
 ## Installing packages and loading them
-#install.packages("tidyverse")
-#install.packages("readxl")
-#install.packages("xlsx")
+install.packages("tidyverse")
+install.packages("readxl")
+install.packages("xlsx")
+install.packages("zoo")
 library(xlsx)
 library(tidyverse)
 library(readxl)
@@ -88,9 +89,15 @@ write.csv(Pricing_Info, file="C:/Users/ameyer/Desktop/Pricing_Info.csv")
 ## GRAPH THIS STUFF
 ## Way too much data. Got to start small.
 ## Limit to JSTOR data
-JSTOR_data <- filter(Tidy_DB1_data, Database=="JSTOR")
-ggplot(data=JSTOR_data) + geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity))+ scale_x_yearmon()
+sample_data <- Tidy_DB1_data %>%
+  filter(Database=="CINAHL Complete") %>%
+  ggplot()+ geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity))+ scale_x_yearmon()
+sample_data
 
+summary_TD <- Tidy_DB1_data %>%
+  group_by(Database, User_Activity) %>%
+  summarize(total = sum(Usage)) %>%
+  arrange(desc(total))
 
 ## I'm spreading the data back into a more familiar view. Things more about this.
 ## Unite Year and Month to make sorting easier.
