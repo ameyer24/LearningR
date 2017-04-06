@@ -49,6 +49,7 @@ load_xl_data <- function(path) {
   do.call(rbind, tables)
 }
 
+
 Tidy_DB1_data <-unique(rbind(load_csv_data(folder),load_xl_data(folder)))
 ## Do a little more tidying.
 ## Remove space from the column name.
@@ -57,6 +58,8 @@ Tidy_DB1_data <- plyr::rename(Tidy_DB1_data, replace = c("User Activity" = "User
 Tidy_DB1_data$Usage <- as.numeric(Tidy_DB1_data$Usage)
 class(Tidy_DB1_data$Date)
 
+
+
 #################################################
 ##TRANSFORM AND VISUALIZE AND MODEL THE DATA.
 #################################################
@@ -64,36 +67,43 @@ class(Tidy_DB1_data$Date)
 
 ## See what publishers we have in the dataset.
 unique(c(Tidy_DB1_data$Publisher))
-
 ## See what platforms we have in the dataset.
 unique(c(Tidy_DB1_data$Platform))
-
 ## See what databases we have in the dataset.
 unique(c(Tidy_DB1_data$Database))
 
-## It would be useful to import pricing data about each database.
-## I ant to create a blank dataframe for manual data entry.
-## This should help.
-## This could be improved with pipes.
-Pricing_Info <- unique(subset(Tidy_DB1_data, select=c(Database,Platform,Date)))
-Pricing_Info$Price <-"$0"
-Pricing_Info$Year <- year(Pricing_Info$Date)
-##Drop the date field...
-Pricing_Info <- spread(Pricing_Info, Year, Price, convert=TRUE, fill="$0")
-Pricing_Info <- unique(Pricing_Info)  
-## Write this to CSV.
-write.csv(Pricing_Info, file="C:/Users/ameyer/Desktop/Pricing_Info.csv")
-## Expect the user to enter pricing information for each of these resources.
+
+#############################
+## PRICING INFORMATION
+
+Pricing_Information <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  distinct(Database, Publisher, Year) %>%
+  mutate(Price ="") %>%
+  spread(Year,Price) %>%
+  mutate(Notes = "")
+
+write.xlsx(Pricing_Information, "C:/Users/ameyer/Desktop/Pricing_Information.xlsx",sheetName = "blank pricing information")
 
 
+#############################
 ## GRAPH THIS STUFF
 ## Way too much data. Got to start small.
 ## Limit to JSTOR data
-sample_data <- Tidy_DB1_data %>%
-  filter(Database=="CINAHL Complete") %>%
+## Plots JSTOR data and user activity
+Tidy_DB1_data %>%
+  filter(Database=="Books at JSTOR") %>%
   ggplot()+ geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity))+ scale_x_yearmon()
-sample_data
 
+## plots just record views for JSTOR
+Tidy_DB1_data %>%
+  filter(User_Activity=="Record Views" & Database=="JSTOR") %>%
+  ggplot()+ geom_line(mapping = aes(x=Date, y=Usage, color=Database))+ scale_x_yearmon()
+
+
+## End Grpahing Section
+  
+  
 summary_TD <- Tidy_DB1_data %>%
   group_by(Database, User_Activity) %>%
   summarize(total = sum(Usage)) %>%
@@ -101,9 +111,10 @@ summary_TD <- Tidy_DB1_data %>%
 
 ## I'm spreading the data back into a more familiar view. Things more about this.
 ## Unite Year and Month to make sorting easier.
-BasicCounterReport <- unite(Tidy_DB1_data, Date, c(Year,Month), sep="-")
-BasicCounterReport <- spread(BasicCounterReport, Date, Usage, convert=TRUE,fill = 0)
-BasicCounterReport  <- arrange(BasicCounterReport,Platform)
+
+BasicCounterReport <- Tidy_DB1_data %>%
+  spread(Date, Usage, convert=TRUE,fill = 0) %>%
+  arrange(Database,Platform)
 
 ## Divide data into actual databases and EDS results
 ## This adds a new column for the total.
