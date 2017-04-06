@@ -83,7 +83,16 @@ Pricing_Information <- Tidy_DB1_data %>%
   spread(Year,Price) %>%
   mutate(Notes = "")
 
+## This function writes the dataframe to Excel for the user to enter pricing information.
+
 write.xlsx(Pricing_Information, "C:/Users/ameyer/Desktop/Pricing_Information.xlsx",sheetName = "blank pricing information")
+
+## Imports the pricing information file.
+##
+Pricing_Information_Test <- read_csv("C:/Users/ameyer/Desktop/Pricing_Information.csv", col_names = TRUE)
+
+#############################
+##Cost per user work
 
 
 #############################
