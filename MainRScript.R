@@ -75,7 +75,7 @@ unique(c(Tidy_DB1_data$Platform))
 ## See what databases we have in the dataset.
 unique(c(Tidy_DB1_data$Database))
 
-## Mutate data to include additional year grouping options.
+## Mutate data to include additional date grouping options.
 ## Not sure if this will be helpful. But it might be!
 Mutated1 <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
@@ -93,6 +93,13 @@ Mutated1 <- Tidy_DB1_data %>%
     "Fall" = (Month==9 | Month==10 | Month==11 | Month==12),
     .default = "Unknown"
   ))
+
+## Mutate data to classify it.
+## Some of our Counter data is pretty much worthless. Classify that.
+## Trying to classify high or low usage.
+Mutated2 <- Tidy_DB1_data %>%
+  
+  
 
 ## Summmarize total usage. Arrange in descending order by database.
 Summary1 <- Tidy_DB1_data %>%
@@ -119,7 +126,8 @@ Summary3_1 <- Mutated1 %>%
   mutate(Acad_Year = paste(Academic_Term, Year, sep="-"))%>%
   group_by(Database, Publisher, User_Activity, Acad_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
-  spread(Acad_Year, Total_Usage)
+  spread(Acad_Year, Total_Usage) %>%
+  write_csv("C:/Users/ameyer/Desktop/Summary3_1.csv")
 
 ## This goes directly from the Tidy Data Frame.
 Summary3_2 <- Tidy_DB1_data %>%
@@ -131,7 +139,7 @@ Summary3_2 <- Tidy_DB1_data %>%
     "Fall" = (Month==9 | Month==10 | Month==11 | Month==12),
     .default = "Unknown"
   )) %>%
-  mutate(Acad_Year = paste(Academic_Term, Year, sep="-"))%>%
+  mutate(Acad_Year = paste(Year, Academic_Term, sep="-"))%>%
   group_by(Database, Publisher, User_Activity, Acad_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Acad_Year, Total_Usage)
