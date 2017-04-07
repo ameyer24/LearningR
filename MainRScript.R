@@ -1,17 +1,18 @@
 ## OVERVIEW AND SET UP
-## Right now, this reads all Counter DB1 Reports (R4) from a given folder and creates a dataframe for them.
 
-## Installing packages and loading them
+## Install packages.
 install.packages("tidyverse")
 install.packages("readxl")
 install.packages("xlsx")
 install.packages("zoo")
 install.packages("mosaic")
+## Load Packages.
 library(mosaic)
 library(xlsx)
 library(tidyverse)
 library(readxl)
 library(zoo)
+library(lubridate)
 
 ## READING THE FILES AND TIDYING THE DATA
 
@@ -92,6 +93,7 @@ Mutated1 <- Tidy_DB1_data %>%
     "Fall" = (Month==9 | Month==10 | Month==11 | Month==12),
     .default = "Unknown"
   ))
+
 ## Summmarize total usage. Arrange in descending order by database.
 Summary1 <- Tidy_DB1_data %>%
   group_by(Database, User_Activity) %>%
@@ -108,18 +110,48 @@ Summary2 <- Tidy_DB1_data %>%
   write_csv("C:/Users/ameyer/Desktop/Summary2.csv")
 
 
-## Summarize on the Fiscal Year
+## Summarize on the Academic Year
 ## Takes the "mutated" data frame created earlier.
 ## Would it be better to embed that stuff here?
 ## Try it both ways? Seems like there is an upper limit to chaining functions.
 
-Summary3 <- Mutated1 %>%
-  mutate(FY = )
-  group_by(Database, Publisher, User_Activity, FY) %>%
+Summary3_1 <- Mutated1 %>%
+  mutate(Acad_Year = paste(Academic_Term, Year, sep="-"))%>%
+  group_by(Database, Publisher, User_Activity, Acad_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
-  spread(FY, Total_Usage)
+  spread(Acad_Year, Total_Usage)
 
+## This goes directly from the Tidy Data Frame.
+Summary3_2 <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  mutate(Month = month(Date)) %>%
+  mutate(Academic_Term = derivedFactor(
+    "Spring" = (Month==1 | Month==2 | Month==3 | Month==4),
+    "Summer" = (Month==5 | Month==6 | Month==7 | Month==8),
+    "Fall" = (Month==9 | Month==10 | Month==11 | Month==12),
+    .default = "Unknown"
+  )) %>%
+  mutate(Acad_Year = paste(Academic_Term, Year, sep="-"))%>%
+  group_by(Database, Publisher, User_Activity, Acad_Year) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  spread(Acad_Year, Total_Usage)
 
+## Summarize on the Fiscal Year
+## Deciding to skip the extra step and calculate just from month and year.
+Summary4_1 <- Mutated1 %>%
+  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))%>%
+  group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  spread(Fiscal_Year, Total_Usage)
+
+## This goes directly from the tidy dataframe.
+Summary4_2 <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  mutate(Month = month(Date)) %>%
+  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))%>%
+  group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  spread(Fiscal_Year, Total_Usage)
 
 #############################
 ## PRICING INFORMATION
