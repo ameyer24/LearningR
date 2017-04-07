@@ -84,19 +84,45 @@ Summary1 <- Tidy_DB1_data %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Year, Total_Usage) %>%
   write_csv("C:/Users/ameyer/Desktop/Summary1.csv")
+install.packages("mosaic")
+library(mosaic)
 
 ## Summarize on the Fiscal Year
+## group into fiscal years (or academic terms?)
 Summary2 <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   mutate(Month = month(Date)) %>%
-  ## group into fiscal years (or academic terms?)
-  
-  group_by(Database, Publisher, User_Activity, Year) %>%
+  mutate(FY = derivedFactor(
+    "Q1" = (Month==1 | Month==2 | Month==3),
+    "Q2" = (Month==4 | Month==5 | Month==6),
+    "Q3" = (Month==7 | Month==8 | Month==9),
+    "Q4" = (Month==10 | Month==11 | Month==12),
+    .default = "Unknown"
+  )) %>%
+  group_by(Database, Publisher, User_Activity, FY) %>%
   summarize(Total_Usage= sum(Usage)) %>%
-  spread(Year, Total_Usage)
+  spread(FY, Total_Usage)
 
-%>%
-  write_csv("C:/Users/ameyer/Desktop/Summary2.csv")
+## Mutate data to include additional year groupings.
+## Not sure if this will be helpful. But it might be!
+Mutated1 <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  mutate(Month = month(Date)) %>%
+  mutate(FQ = derivedFactor(
+    "Q1" = (Month==1 | Month==2 | Month==3),
+    "Q2" = (Month==4 | Month==5 | Month==6),
+    "Q3" = (Month==7 | Month==8 | Month==9),
+    "Q4" = (Month==10 | Month==11 | Month==12),
+    .default = "Unknown"
+  )) %>%
+  mutate(Acad_Term = derivedFactor(
+    "Spring" = (Month==1 | Month==2 | Month==3 | Month==4),
+    "Summer" = (Month==5 | Month==6 | Month==7 | Month==8),
+    "Fall" = (Month==9 | Month==10 | Month==11 | Month==12),
+    .default = "Unknown"
+  ))
+
+
 
 #############################
 ## PRICING INFORMATION
