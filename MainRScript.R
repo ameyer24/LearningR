@@ -6,6 +6,8 @@ install.packages("tidyverse")
 install.packages("readxl")
 install.packages("xlsx")
 install.packages("zoo")
+install.packages("mosaic")
+library(mosaic)
 library(xlsx)
 library(tidyverse)
 library(readxl)
@@ -72,55 +74,50 @@ unique(c(Tidy_DB1_data$Platform))
 ## See what databases we have in the dataset.
 unique(c(Tidy_DB1_data$Database))
 
-summary_TD <- Tidy_DB1_data %>%
-  group_by(Database, User_Activity) %>%
-  summarize(total = sum(Usage)) %>%
-  arrange(desc(total))
-
-## Summarize Usage on the Calendar Year
-Summary1 <- Tidy_DB1_data %>%
-  mutate(Year = year(Date)) %>%
-  group_by(Database, Publisher, User_Activity, Year) %>%
-  summarize(Total_Usage= sum(Usage)) %>%
-  spread(Year, Total_Usage) %>%
-  write_csv("C:/Users/ameyer/Desktop/Summary1.csv")
-install.packages("mosaic")
-library(mosaic)
-
-## Summarize on the Fiscal Year
-## group into fiscal years (or academic terms?)
-Summary2 <- Tidy_DB1_data %>%
-  mutate(Year = year(Date)) %>%
-  mutate(Month = month(Date)) %>%
-  mutate(FY = derivedFactor(
-    "Q1" = (Month==1 | Month==2 | Month==3),
-    "Q2" = (Month==4 | Month==5 | Month==6),
-    "Q3" = (Month==7 | Month==8 | Month==9),
-    "Q4" = (Month==10 | Month==11 | Month==12),
-    .default = "Unknown"
-  )) %>%
-  group_by(Database, Publisher, User_Activity, FY) %>%
-  summarize(Total_Usage= sum(Usage)) %>%
-  spread(FY, Total_Usage)
-
-## Mutate data to include additional year groupings.
+## Mutate data to include additional year grouping options.
 ## Not sure if this will be helpful. But it might be!
 Mutated1 <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   mutate(Month = month(Date)) %>%
-  mutate(FQ = derivedFactor(
+  mutate(Fiscal_Quarter = derivedFactor(
     "Q1" = (Month==1 | Month==2 | Month==3),
     "Q2" = (Month==4 | Month==5 | Month==6),
     "Q3" = (Month==7 | Month==8 | Month==9),
     "Q4" = (Month==10 | Month==11 | Month==12),
     .default = "Unknown"
   )) %>%
-  mutate(Acad_Term = derivedFactor(
+  mutate(Academic_Term = derivedFactor(
     "Spring" = (Month==1 | Month==2 | Month==3 | Month==4),
     "Summer" = (Month==5 | Month==6 | Month==7 | Month==8),
     "Fall" = (Month==9 | Month==10 | Month==11 | Month==12),
     .default = "Unknown"
   ))
+## Summmarize total usage. Arrange in descending order by database.
+Summary1 <- Tidy_DB1_data %>%
+  group_by(Database, User_Activity) %>%
+  summarize(total = sum(Usage)) %>%
+  arrange(desc(total))
+
+
+## Summarize Usage on the Calendar Year
+Summary2 <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  group_by(Database, Publisher, User_Activity, Year) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  spread(Year, Total_Usage) %>%
+  write_csv("C:/Users/ameyer/Desktop/Summary2.csv")
+
+
+## Summarize on the Fiscal Year
+## Takes the "mutated" data frame created earlier.
+## Would it be better to embed that stuff here?
+## Try it both ways? Seems like there is an upper limit to chaining functions.
+
+Summary3 <- Mutated1 %>%
+  mutate(FY = )
+  group_by(Database, Publisher, User_Activity, FY) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  spread(FY, Total_Usage)
 
 
 
