@@ -17,6 +17,7 @@ library(lubridate)
 ## READING THE FILES AND TIDYING THE DATA
 ## Setting up the folder pathway.
 folder <- "C:/Users/ameyer/Desktop/CounterReports"
+export_folder <- "C:/Users/ameyer/Desktop/CounterReportsReports"
 
 ## Define "Cleaner" functions.
 ## This function reads from CSV files.
@@ -110,8 +111,7 @@ Summary2 <- Tidy_DB1_data %>%
   group_by(Database, Publisher, User_Activity, Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Year, Total_Usage) %>%
-  write_csv("C:/Users/ameyer/Desktop/Summary2.csv")
-
+  write_csv(paste(export_folder, "Summary2.csv",sep="/"))
 
 ## Summarize on the Academic Year
 ## Takes the "mutated" data frame created earlier.
@@ -123,7 +123,7 @@ Summary3_1 <- Mutated1 %>%
   group_by(Database, Publisher, User_Activity, Acad_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Acad_Year, Total_Usage) %>%
-  write_csv("C:/Users/ameyer/Desktop/Summary3_1.csv")
+  write_csv(paste(export_folder, "Summary3_1.csv",sep="/"))
 
 ## This goes directly from the Tidy Data Frame.
 Summary3_2 <- Tidy_DB1_data %>%
@@ -157,6 +157,23 @@ Summary4_2 <- Tidy_DB1_data %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Fiscal_Year, Total_Usage)
 
+## If the sum "regular searches" for a database is less than 10 - classify as "EDS_Search.
+Summary5 <- Tidy_DB1_data %>%
+  group_by(Database, Publisher, User_Activity) %>%
+  filter(User_Activity =="Record Views")%>%
+  summarize(Sum_Record_Views= sum(Usage)) %>%
+  mutate(DB_Value = ifelse(Sum_Record_Views >10, "Core_Database","EDS_Search")) %>%
+  arrange(desc(Sum_Record_Views))
+
+## Sometimes we change a title. Is there a way to unite this titles automatically?
+## For example, the Academic Search products...
+
+
+
+
+
+
+
 #############################
 ## PRICING INFORMATION
 
@@ -166,12 +183,12 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Price ="") %>%
   spread(Year,Price) %>%
   mutate(Notes = "") %>%
-  write_csv("C:/Users/ameyer/Desktop/DB_Pricing_Blank.csv")
+  write_csv(paste(export_folder, "DB_Pricing_Blank.csv",sep="/"))
   
 
 ## Imports the pricing information file.
 ##
-Database_Pricing <- read_csv("C:/Users/ameyer/Desktop/DB_Pricing.csv", col_names = TRUE)
+Database_Pricing <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
 #############################
 ##Cost per use work
