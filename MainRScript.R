@@ -96,7 +96,26 @@ Mutated1 <- Tidy_DB1_data %>%
   )) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))
   
-  
+## Mutate to combine "similar" databases and/or upgrades.
+## I'm going to do this all manually.
+## I'm going to try all the existing data and just add to it.
+## These nested ifelses are nasty... is there a better way!!?
+Mutated2 <- Tidy_DB1_data %>%
+  mutate(Database_Name = 
+           ifelse((Database == "Academic Search Complete"|Database == "Academic Search Elite"),
+                  "Academic Search Family",
+                  ifelse((Database == "CINAHL Complete" |Database == "CINAHL"),
+                         "CINAHL Family",
+                         ifelse((Database == "MEDLINE Complete" |Database == "MEDLINE"),
+                                "Medline Family",
+                                Database)
+                         )
+                  )
+         )
+
+           
+
+
 
 ## Summmarize total usage. Arrange in descending order by database.
 Summary1 <- Tidy_DB1_data %>%
@@ -165,8 +184,7 @@ Summary5 <- Tidy_DB1_data %>%
   mutate(DB_Value = ifelse(Sum_Record_Views >10, "Core_Database","EDS_Search")) %>%
   arrange(desc(Sum_Record_Views))
 
-## Sometimes we change a title. Is there a way to unite this titles automatically?
-## For example, the Academic Search products...
+
 
 
 
@@ -184,7 +202,18 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
   spread(Year,Price) %>%
   mutate(Notes = "") %>%
   write_csv(paste(export_folder, "DB_Pricing_Blank.csv",sep="/"))
-  
+
+## Merging Summary 5 and DB_Pricing Blank
+
+DB_Pricing_Blank1 <- DB_Pricing_Blank %>%
+  merge(Summary5,by=c("Database","Publisher")) %>%
+  select(-User_Activity) %>%
+  select(-Sum_Record_Views) %>%
+  filter(DB_Value =="Core_Database")%>%
+  write_csv(paste(export_folder, "DB_Pricing_Blank1.csv",sep="/"))
+
+
+
 
 ## Imports the pricing information file.
 ##
