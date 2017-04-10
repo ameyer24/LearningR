@@ -15,7 +15,6 @@ library(zoo)
 library(lubridate)
 
 ## READING THE FILES AND TIDYING THE DATA
-
 ## Setting up the folder pathway.
 folder <- "C:/Users/ameyer/Desktop/CounterReports"
 
@@ -77,6 +76,7 @@ unique(c(Tidy_DB1_data$Database))
 
 ## Mutate data to include additional date grouping options.
 ## Not sure if this will be helpful. But it might be!
+## This data is still "tidy" but with additional date information added.
 Mutated1 <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   mutate(Month = month(Date)) %>%
@@ -92,12 +92,8 @@ Mutated1 <- Tidy_DB1_data %>%
     "Summer" = (Month==5 | Month==6 | Month==7 | Month==8),
     "Fall" = (Month==9 | Month==10 | Month==11 | Month==12),
     .default = "Unknown"
-  ))
-
-## Mutate data to classify it.
-## Some of our Counter data is pretty much worthless. Classify that.
-## Trying to classify high or low usage.
-Mutated2 <- Tidy_DB1_data %>%
+  )) %>%
+  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))
   
   
 
