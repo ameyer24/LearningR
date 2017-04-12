@@ -193,8 +193,10 @@ Summary5 <- Tidy_DB1_data %>%
 
 
 #############################
-## PRICING INFORMATION
+## IMPORT PRICING INFORMATION
 
+## rename year columns!!
+## Add publisher column (to make tidier)
 DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   distinct(Database, Publisher, Year) %>%
@@ -212,22 +214,40 @@ DB_Pricing_Blank1 <- DB_Pricing_Blank %>%
   filter(DB_Value =="Core_Database")%>%
   write_csv(paste(export_folder, "DB_Pricing_Blank1.csv",sep="/"))
 
-
-
-
 ## Imports the pricing information file.
 ##
 Database_Pricing <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
+## Create "tidy" database pricing.
+## An attempt to add this information to the tidy db information.
+
+Tidy_Database_Pricing <- Database_Pricing %>%
+  filter(Database =="Academic Search Complete") %>%
+  mutate(Platform = "test") %>%
+  gather(Fiscal_Year, Cost, 3:6) # Need to update this to make it work all the time.
+
+  
+
 #############################
 ##Cost per use work
-## Starting with just Business Source Complete
-ROI1 <- Tidy_DB1_data %>%
-  filter(Database=="Business Source Complete") %>%
-  mutate(Year = year(Date)) %>%
-  group_by(User_Activity, Year) %>%
-  summarize(Total = sum(Usage)) %>%
-  arrange(desc(Year))
+## Start small - combine SUmmary2 and Cost per use
+## Summary2 is annual usage. Cost is on an annual basis.
+
+## I might be possible to add 1/12 of the cost to the original tidy data...
+## Is that a good idea or not?
+## Maybe add it not as a new column but as a new row?!!
+
+Cost_Per_Use1 <- Summary2 %>%
+  left_join(Database_Pricing, by=c("Database","Publisher"))
+
+## It would be helpful to rename the columns.
+## I should do that earlier. Revise earlier stuff.
+## I manually renamed the columns in the blank pricing thing...revise that code!
+
+Cost_Per_Use2 <- Cost_Per_Use1 %>%
+  filter(Database=="Academic Search Complete") %>%
+  mutate(cost_per_2015 = `2015_Cost`/`2015`)
+
 
 
 #############################
