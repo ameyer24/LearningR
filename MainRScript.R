@@ -99,21 +99,21 @@ Mutated1 <- Tidy_DB1_data %>%
 ## Mutate to combine "similar" databases and/or upgrades.
 ## I'm going to do this all manually.
 ## I'm going to try all the existing data and just add to it.
-## These nested ifelses are nasty... is there a better way!!?
-Mutated2 <- Tidy_DB1_data %>%
-  mutate(Database_Name = 
-           ifelse((Database == "Academic Search Complete"|Database == "Academic Search Elite"),
-                  "Academic Search Family",
-                  ifelse((Database == "CINAHL Complete" |Database == "CINAHL"),
-                         "CINAHL Family",
-                         ifelse((Database == "MEDLINE Complete" |Database == "MEDLINE"),
-                                "Medline Family",
-                                Database)
-                         )
-                  )
-         )
-
-           
+# ## These nested ifelses are nasty... is there a better way!!?
+# Mutated2 <- Tidy_DB1_data %>%
+#   mutate(Database_Name = 
+#            ifelse((Database == "Academic Search Complete"|Database == "Academic Search Elite"),
+#                   "Academic Search Family",
+#                   ifelse((Database == "CINAHL Complete" |Database == "CINAHL"),
+#                          "CINAHL Family",
+#                          ifelse((Database == "MEDLINE Complete" |Database == "MEDLINE"),
+#                                 "Medline Family",
+#                                 Database)
+#                          )
+#                   )
+#          )
+# 
+#            
 
 
 
@@ -225,7 +225,6 @@ Num_of_years <- ncol(Database_Pricing)-3
 ## An attempt to add this information to the tidy db information.
 
 Tidy_Database_Pricing <- Database_Pricing %>%
-<<<<<<< HEAD
   gather(Fiscal_Year, Cost, 5:8) %>%
   mutate(Cost = as.numeric(Cost))%>%
   filter(Database == "Academic Search Complete")
