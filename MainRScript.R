@@ -215,14 +215,17 @@ DB_Pricing_Blank1 <- DB_Pricing_Blank %>%
   write_csv(paste(export_folder, "DB_Pricing_Blank1.csv",sep="/"))
 
 ## Imports the pricing information file.
-##
 Database_Pricing <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
+## determines the number of years in the table.
+Num_of_years <- ncol(Database_Pricing)-3
+
 
 ## Create "tidy" database pricing.
 ## This seems better in a lot of ways than just the straight import.
 ## An attempt to add this information to the tidy db information.
 
 Tidy_Database_Pricing <- Database_Pricing %>%
+<<<<<<< HEAD
   gather(Fiscal_Year, Cost, 5:8) %>%
   mutate(Cost = as.numeric(Cost))%>%
   filter(Database == "Academic Search Complete")
@@ -239,46 +242,102 @@ Montly_Tidy_Database_Pricing <- Tidy_Database_Pricing %>%
 
 Database_Pricing2 <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
+=======
+  filter(Database =="Academic Search Complete") %>%
+  gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3))%>%
+  mutate(Cost = as.numeric(Cost))
+
+# ## Trying to convert the yearly pricing information into monthly...
+# Tidy_Database_Pricing1 <-   Database_Pricing %>%
+#   filter(Database =="Academic Search Complete") %>%
+#   gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3)) %>%
+#   mutate(Monthly_Cost = as.numeric(Cost)/12) %>%
+>>>>>>> d8385a1825851b7dde30a534e404bab199e6cb51
   
+
 
 #############################
 ##Cost per use work
-## Start small - combine SUmmary2 and Cost per use
-## Summary2 is annual usage. Cost is on an annual basis.
+## Start with the fiscal year.
+## Combine Summary 4_3 with Tidy_Database_Pricing
+## Rename columns to match
+CPU_Usage <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  mutate(Month = month(Date)) %>%
+  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))%>%
+  group_by(Database, Publisher,Platform, User_Activity, Fiscal_Year) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  rename(Description = User_Activity) %>%
+  rename(Measure = Total_Usage)
 
-## I might be possible to add 1/12 of the cost to the original tidy data...
-## Is that a good idea or not?
-## Maybe add it not as a new column but as a new row?!!
+CPU_Cost<- Database_Pricing %>%
+  filter(Database =="Academic Search Complete") %>%
+  gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3))%>%
+  mutate(Cost = as.numeric(Cost)) %>%
+  rename(Measure = Cost) %>%
+  mutate(Description = "Total Cost") %>%
+  select(-Notes)
+  
+CPU_Tidy <-  rbind.data.frame(CPU_Usage, CPU_Cost)
 
-Cost_Per_Use1 <- Summary2 %>%
-  left_join(Database_Pricing, by=c("Database","Publisher"))
-
-## It would be helpful to rename the columns.
-## I should do that earlier. Revise earlier stuff.
-## I manually renamed the columns in the blank pricing thing...revise that code!
-
-Cost_Per_Use2 <- Cost_Per_Use1 %>%
-  filter(Database=="Academic Search Complete") %>%
-  mutate(cost_per_2015 = `2015_Cost`/`2015`)
-
-
+CPU_Tidy1 <- CPU_Tidy %>%
+  filter(Database =="Academic Search Complete")
 
 #############################
-## GRAPH THIS STUFF
-## Way too much data. Got to start small.
-## Limit to JSTOR data
-## Plots JSTOR data and user activity
-Tidy_DB1_data %>%
-  filter(Database=="Books at JSTOR") %>%
-  ggplot()+ geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity))+ scale_x_yearmon()
+## GRAPHING USAGE
 
-## plots just record views for JSTOR
-Tidy_DB1_data %>%
-  filter(User_Activity=="Record Views" & Database=="JSTOR") %>%
-  ggplot()+ geom_line(mapping = aes(x=Date, y=Usage, color=Database))+ scale_x_yearmon()
+## Filter by database
+Graph1 <- Tidy_DB1_data %>%
+  filter(Database=="JSTOR") %>%
+  ggplot() +
+  geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity)) +
+  scale_x_yearmon()
+Graph1
 
+## Filter by database and User Activity
+Graph2 <- Tidy_DB1_data %>%
+  filter(User_Activity=="Record Views") %>%
+  filter(Database=="CINAHL Complete") %>%
+  ggplot() +
+  geom_line(mapping = aes(x=Date, y=Usage, color=Database)) +
+  scale_x_yearmon()
+Graph2
 
-## End Grpahing Section
+## Uses the "mutated" data frame to academic term analysis
+
+Graph3Data <- Mutated1 %>%
+  filter(Database=="Academic Search Complete") %>%
+  filter(Year>2013) %>%
+  mutate(Academic_Season = paste(Year, Academic_Term, sep="-")) %>%
+  group_by(Database, Publisher, Platform, User_Activity, Academic_Season)%>%
+  summarize(Usage=sum(Usage))
+
+Graph3 <- Graph3Data %>%
+  ggplot(aes(x=Academic_Season,y=Usage, fill=User_Activity)) +
+  geom_bar(stat="identity")
+Graph3
+
+Graph3_1 <- Mutated1 %>%
+  filter(Database=="Academic Search Complete") %>%
+  filter(Year>2014) %>%
+  mutate(Academic_Season = paste(Year, Academic_Term, sep="-")) %>%
+  group_by(Database, Publisher, Platform, User_Activity, Academic_Season)%>%
+  summarize(Usage=sum(Usage)) %>%
+  ggplot(aes(x=Academic_Season,y=Usage, fill=User_Activity)) +
+  geom_bar(stat="identity")
+Graph3_1
+
+Graph4 <- Mutated1 %>%
+  filter(Database=="Academic Search Complete") %>%
+  filter(Year>2013) %>%
+  mutate(Academic_Season = paste(Year, Academic_Term, sep="-")) %>%
+  group_by(Database, Publisher, Platform, User_Activity, Academic_Season)%>%
+  summarize(Usage=sum(Usage)) %>%
+  ggplot(aes(x=Academic_Season,y=Usage)) +
+  geom_point(aes(color=User_Activity))
+Graph4
+
+## End Graphing Section
 
 ###############################
 ##Exporting
