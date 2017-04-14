@@ -199,10 +199,10 @@ Summary5 <- Tidy_DB1_data %>%
 ## Add publisher column (to make tidier)
 DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
-  distinct(Database, Publisher, Year) %>%
+  distinct(Database, Publisher,Platform, Year) %>%
   mutate(Price ="") %>%
-  spread(Year,Price) %>%
   mutate(Notes = "") %>%
+  spread(Year,Price) %>%
   write_csv(paste(export_folder, "DB_Pricing_Blank.csv",sep="/"))
 
 ## Merging Summary 5 and DB_Pricing Blank
@@ -219,12 +219,25 @@ DB_Pricing_Blank1 <- DB_Pricing_Blank %>%
 Database_Pricing <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
 ## Create "tidy" database pricing.
+## This seems better in a lot of ways than just the straight import.
 ## An attempt to add this information to the tidy db information.
 
 Tidy_Database_Pricing <- Database_Pricing %>%
-  filter(Database =="Academic Search Complete") %>%
-  mutate(Platform = "test") %>%
-  gather(Fiscal_Year, Cost, 3:6) # Need to update this to make it work all the time.
+  gather(Fiscal_Year, Cost, 5:8) %>%
+  mutate(Cost = as.numeric(Cost))%>%
+  filter(Database == "Academic Search Complete")
+
+class(Tidy_Database_Pricing$Cost)
+quarters1 <- c("q1","q2","q3","q4")
+## Attempting to divide this data into months.
+Montly_Tidy_Database_Pricing <- Tidy_Database_Pricing %>%
+  mutate(Quarterly_Cost = Cost/4)
+  
+
+##This is decent. Can I spread the yearly cost by month?
+## I'm just guessing here...
+
+Database_Pricing2 <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
   
 
