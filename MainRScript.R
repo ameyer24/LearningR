@@ -95,26 +95,6 @@ Mutated1 <- Tidy_DB1_data %>%
     .default = "Unknown"
   )) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))
-  
-## Mutate to combine "similar" databases and/or upgrades.
-## I'm going to do this all manually.
-## I'm going to try all the existing data and just add to it.
-# ## These nested ifelses are nasty... is there a better way!!?
-# Mutated2 <- Tidy_DB1_data %>%
-#   mutate(Database_Name = 
-#            ifelse((Database == "Academic Search Complete"|Database == "Academic Search Elite"),
-#                   "Academic Search Family",
-#                   ifelse((Database == "CINAHL Complete" |Database == "CINAHL"),
-#                          "CINAHL Family",
-#                          ifelse((Database == "MEDLINE Complete" |Database == "MEDLINE"),
-#                                 "Medline Family",
-#                                 Database)
-#                          )
-#                   )
-#          )
-# 
-#            
-
 
 
 ## Summmarize total usage. Arrange in descending order by database.
@@ -185,18 +165,9 @@ Summary5 <- Tidy_DB1_data %>%
   arrange(desc(Sum_Record_Views))
 
 
-
-
-
-
-
-
-
 #############################
 ## IMPORT PRICING INFORMATION
-
-## rename year columns!!
-## Add publisher column (to make tidier)
+## This creates a blank template to help with the import of pricing data.
 DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   distinct(Database, Publisher,Platform, Year) %>%
@@ -205,54 +176,48 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
   spread(Year,Price) %>%
   write_csv(paste(export_folder, "DB_Pricing_Blank.csv",sep="/"))
 
-## Merging Summary 5 and DB_Pricing Blank
-
-DB_Pricing_Blank1 <- DB_Pricing_Blank %>%
-  merge(Summary5,by=c("Database","Publisher")) %>%
-  select(-User_Activity) %>%
-  select(-Sum_Record_Views) %>%
-  filter(DB_Value =="Core_Database")%>%
-  write_csv(paste(export_folder, "DB_Pricing_Blank1.csv",sep="/"))
-
 ## Imports the pricing information file.
 Database_Pricing <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
-## determines the number of years in the table.
-Num_of_years <- ncol(Database_Pricing)-3
+
+## Some variables to describe the size and shape of the pricing data.
+## four columns of descriptive information.
+DB_Pricing_Description <- 4
+## the rest are the years.
+DB_Pricing_Years <- ncol(Database_Pricing)-DB_Pricing_Description
 
 
 ## Create "tidy" database pricing.
-## This seems better in a lot of ways than just the straight import.
-## An attempt to add this information to the tidy db information.
-
 Tidy_Database_Pricing <- Database_Pricing %>%
-  gather(Fiscal_Year, Cost, 5:8) %>%
-  mutate(Cost = as.numeric(Cost))%>%
-  filter(Database == "Academic Search Complete")
-
-class(Tidy_Database_Pricing$Cost)
-quarters1 <- c("q1","q2","q3","q4")
-## Attempting to divide this data into months.
-Montly_Tidy_Database_Pricing <- Tidy_Database_Pricing %>%
-  mutate(Quarterly_Cost = Cost/4)
-  
-
-##This is decent. Can I spread the yearly cost by month?
-## I'm just guessing here...
-
-Database_Pricing2 <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
-
-=======
-  filter(Database =="Academic Search Complete") %>%
-  gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3))%>%
+  gather(Fiscal_Year, Cost, (DB_Pricing_Description +1):(ncol(Database_Pricing))) %>%
   mutate(Cost = as.numeric(Cost))
 
-# ## Trying to convert the yearly pricing information into monthly...
-# Tidy_Database_Pricing1 <-   Database_Pricing %>%
-#   filter(Database =="Academic Search Complete") %>%
-#   gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3)) %>%
-#   mutate(Monthly_Cost = as.numeric(Cost)/12) %>%
->>>>>>> d8385a1825851b7dde30a534e404bab199e6cb51
+class(Tidy_Database_Pricing$Cost)
+
+###############################
+## Looking at pricing information.
+Cost1 <- Tidy_Database_Pricing %>%
+  group_by(Database,Fiscal_Year) %>%
+  summarize(Total_Cost = sum(Cost))
+
+Cost1_1 <- Tidy_Database_Pricing %>%
+  group_by(Database) %>%
+  spread(Fiscal_Year,Cost) %>%
+
   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+
+
+
 
 
 #############################
