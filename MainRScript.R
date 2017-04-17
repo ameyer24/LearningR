@@ -195,13 +195,15 @@ class(Tidy_Database_Pricing$Cost)
 
 ###############################
 ## Looking at pricing information.
-Cost1 <- Tidy_Database_Pricing %>%
-  group_by(Database,Fiscal_Year) %>%
-  summarize(Total_Cost = sum(Cost))
 
-Cost1_1 <- Tidy_Database_Pricing %>%
+## Create a simple table of pricing information.
+Cost1 <- Tidy_Database_Pricing %>%
   group_by(Database) %>%
   spread(Fiscal_Year,Cost) %>%
+  subset(select = -c(2,3))
+
+## Sum cost by fiscal year
+summary(Cost1$`2017`)
 
   
   
