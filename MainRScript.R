@@ -173,6 +173,9 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
   distinct(Database, Publisher,Platform, Year) %>%
   mutate(Price ="") %>%
   mutate(Notes = "") %>%
+  mutate(Category="") %>%
+  mutate(Ordering_Site = "")%>%
+  mutate(Ordering_Cycle = "") %>%
   spread(Year,Price) %>%
   write_csv(paste(export_folder, "DB_Pricing_Blank.csv",sep="/"))
 
@@ -181,7 +184,7 @@ Database_Pricing <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col
 
 ## Some variables to describe the size and shape of the pricing data.
 ## four columns of descriptive information.
-DB_Pricing_Description <- 4
+DB_Pricing_Description <- 7
 ## the rest are the years.
 DB_Pricing_Years <- ncol(Database_Pricing)-DB_Pricing_Description
 
@@ -190,8 +193,6 @@ DB_Pricing_Years <- ncol(Database_Pricing)-DB_Pricing_Description
 Tidy_Database_Pricing <- Database_Pricing %>%
   gather(Fiscal_Year, Cost, (DB_Pricing_Description +1):(ncol(Database_Pricing))) %>%
   mutate(Cost = as.numeric(Cost))
-
-class(Tidy_Database_Pricing$Cost)
 
 ###############################
 ## Looking at pricing information.
@@ -202,20 +203,16 @@ Cost1 <- Tidy_Database_Pricing %>%
   spread(Fiscal_Year,Cost) %>%
   subset(select = -c(2,3))
 
-## Sum cost by fiscal year
-summary(Cost1$`2017`)
+CostGraph1 <- Tidy_Database_Pricing %>%
+  filter(Database=="Business Source Complete") %>%
+  ggplot(aes(x=Fiscal_Year,y=Cost)) + geom_bar(stat="identity")
+CostGraph1
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 
+CostGraph2 <- Tidy_Database_Pricing %>%
+  filter(Database=="Business Source Complete") %>%
+  ggplot(aes(x=Fiscal_Year,y=Cost)) + geom_smooth(stat="identity")
+CostGraph2
 
 
 
