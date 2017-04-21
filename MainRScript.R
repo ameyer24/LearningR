@@ -240,9 +240,11 @@ Cost2 <- Cost1 %>%
   filter(Total_Cost > 0) %>%
   arrange(desc(Total_Cost))
 
+## Calculate the average cost increase over time.
 
+## Here is a simple graph of pricing for a given database.
 CostGraph1 <- Tidy_Database_Pricing %>%
-  filter(Database=="Business Source Complete") %>%
+  filter(Database=="CINAHL Complete") %>%
   ggplot(aes(x=Fiscal_Year,y=Cost)) + geom_bar(stat="identity")
 CostGraph1
 
@@ -298,36 +300,23 @@ CostGraph1
 
 #############################
 ##Cost per use work
-## Start with the fiscal year.
-## Combine Summary 4_3 with Tidy_Database_Pricing
-## Rename columns to match
-CPU_Usage <- Tidy_DB1_data %>%
-  mutate(Year = year(Date)) %>%
-  mutate(Month = month(Date)) %>%
-  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))%>%
-  group_by(Database, Publisher,Platform, User_Activity, Fiscal_Year) %>%
-  summarize(Total_Usage= sum(Usage)) %>%
-  rename(Description = User_Activity) %>%
-  rename(Measure = Total_Usage)
 
-CPU_Cost<- Database_Pricing %>%
-  filter(Database =="Academic Search Complete") %>%
-  gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3))%>%
-  mutate(Cost = as.numeric(Cost)) %>%
-  rename(Measure = Cost) %>%
-  mutate(Description = "Total Cost") %>%
-  select(-Notes)
-  
-CPU_Tidy <-  rbind.data.frame(CPU_Usage, CPU_Cost)
+## Compare the fiscal year usage to fiscal year cost for a particular database.
+## Combine data into one dataframe.
 
-CPU_Tidy1 <- CPU_Tidy %>%
-  filter(Database =="Academic Search Complete")
+FY_Usage <- Tidy_DB1_data %>%
+  mutate(Year = year(Date), Month=month(Date)) %>%
+  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
+  group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
+  summarize(Measure = sum(Usage))
 
+FY_Cost <- Raw_Database_Pricing %>%
+  gather(Fiscal_Year, Cost, (DB_Pricing_Description +1):(ncol(Raw_Database_Pricing))) %>%
+  mutate(Cost = as.numeric(Cost), Fiscal_Year = as.numeric(Fiscal_Year)) %>%
+  subset(select = -c(3:7)) %>%
+  mutate(Measurement = "Cost")
 
-
-
-
-
+class(FY_Usage$Fiscal_Year)
 
 
 
