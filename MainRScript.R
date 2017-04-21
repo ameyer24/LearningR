@@ -63,15 +63,51 @@ class(Tidy_DB1_data$Date)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #################################################
 ##TRANSFORM AND VISUALIZE AND MODEL THE DATA.
-#################################################
-####General Overview
+
+##General Overview
 
 ## See what publishers we have in the dataset.
 unique(c(Tidy_DB1_data$Publisher))
+
 ## See what platforms we have in the dataset.
 unique(c(Tidy_DB1_data$Platform))
+
 ## See what databases we have in the dataset.
 unique(c(Tidy_DB1_data$Database))
 
@@ -97,12 +133,11 @@ Mutated1 <- Tidy_DB1_data %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))
 
 
-## Summmarize total usage. Arrange in descending order by database.
+## This "spreads" the data into a more counter like report.
 Summary1 <- Tidy_DB1_data %>%
-  group_by(Database, User_Activity) %>%
-  summarize(total = sum(Usage)) %>%
-  arrange(desc(total))
-
+  filter(Date >= 2013) %>% # Update this filter to create customized date ranges.
+  spread(Date, Usage, convert=TRUE,fill = 0) %>%
+  arrange(Database,Platform)
 
 ## Summarize Usage on the Calendar Year
 Summary2 <- Tidy_DB1_data %>%
@@ -112,57 +147,54 @@ Summary2 <- Tidy_DB1_data %>%
   spread(Year, Total_Usage) %>%
   write_csv(paste(export_folder, "Summary2.csv",sep="/"))
 
-## Summarize on the Academic Year
-## Takes the "mutated" data frame created earlier.
-## Would it be better to embed that stuff here?
-## Try it both ways? Seems like there is an upper limit to chaining functions.
-
-Summary3_1 <- Mutated1 %>%
-  mutate(Acad_Year = paste(Academic_Term, Year, sep="-"))%>%
+## Summarize Usage on the Academic Year
+Summary3 <- Tidy_DB1_data %>%
+  mutate(Year = year(Date), Month=month(Date)) %>%
+  mutate(Academic_Term = derivedFactor(
+    "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
+    "S2 (Summer)" = (Month==5 | Month==6 | Month==7 | Month==8),
+    "S3 (Fall)" = (Month==9 | Month==10 | Month==11 | Month==12),
+    .default = "Unknown"
+  )) %>%
+  mutate(Acad_Year = paste(Year, Academic_Term, sep=" "))%>%
   group_by(Database, Publisher, User_Activity, Acad_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Acad_Year, Total_Usage) %>%
-  write_csv(paste(export_folder, "Summary3_1.csv",sep="/"))
-
-## This goes directly from the Tidy Data Frame.
-Summary3_2 <- Tidy_DB1_data %>%
-  mutate(Year = year(Date)) %>%
-  mutate(Month = month(Date)) %>%
-  mutate(Academic_Term = derivedFactor(
-    "Spring" = (Month==1 | Month==2 | Month==3 | Month==4),
-    "Summer" = (Month==5 | Month==6 | Month==7 | Month==8),
-    "Fall" = (Month==9 | Month==10 | Month==11 | Month==12),
-    .default = "Unknown"
-  )) %>%
-  mutate(Acad_Year = paste(Year, Academic_Term, sep="-"))%>%
-  group_by(Database, Publisher, User_Activity, Acad_Year) %>%
-  summarize(Total_Usage= sum(Usage)) %>%
-  spread(Acad_Year, Total_Usage)
+  write_csv(paste(export_folder, "Summary3.csv",sep="/"))
 
 ## Summarize on the Fiscal Year
-## Deciding to skip the extra step and calculate just from month and year.
-Summary4_1 <- Mutated1 %>%
-  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))%>%
+Summary4 <- Tidy_DB1_data %>%
+  mutate(Year = year(Date), Month=month(Date)) %>%
+  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
+  mutate(Fiscal_Year = paste("FY", Fiscal_Year, sep=" ")) %>%
   group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Fiscal_Year, Total_Usage)
 
-## This goes directly from the tidy dataframe.
-Summary4_2 <- Tidy_DB1_data %>%
-  mutate(Year = year(Date)) %>%
-  mutate(Month = month(Date)) %>%
-  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))%>%
-  group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
-  summarize(Total_Usage= sum(Usage)) %>%
-  spread(Fiscal_Year, Total_Usage)
 
 ## If the sum "regular searches" for a database is less than 10 - classify as "EDS_Search.
 Summary5 <- Tidy_DB1_data %>%
   group_by(Database, Publisher, User_Activity) %>%
   filter(User_Activity =="Record Views")%>%
   summarize(Sum_Record_Views= sum(Usage)) %>%
-  mutate(DB_Value = ifelse(Sum_Record_Views >10, "Core_Database","EDS_Search")) %>%
+  mutate(DB_Value = ifelse(Sum_Record_Views >10, "Core","EDS")) %>%
   arrange(desc(Sum_Record_Views))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #############################
@@ -174,7 +206,7 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Price ="") %>%
   mutate(Notes = "") %>%
   mutate(Category="") %>%
-  mutate(Ordering_Site = "")%>%
+  mutate(Ordering_Site = "") %>%
   mutate(Ordering_Cycle = "") %>%
   spread(Year,Price) %>%
   write_csv(paste(export_folder, "DB_Pricing_Blank.csv",sep="/"))
@@ -182,38 +214,85 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
 ## Imports the pricing information file.
 Raw_Database_Pricing <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
-## Some variables to describe the size and shape of the pricing data.
-## four columns of descriptive information.
+## Creating some variables to describe the size and shape of the pricing data.
+## This sets the number of descriptive columns at 7 (the rest are years)
 DB_Pricing_Description <- 7
-## the rest are the years.
 DB_Pricing_Years <- ncol(Raw_Database_Pricing)-DB_Pricing_Description
 
-
-## Create "tidy" database pricing.
+## Creates tidy dataframe of just database pricing.
+## Does not use the rest of the descriptive information.
 Tidy_Database_Pricing <- Raw_Database_Pricing %>%
   gather(Fiscal_Year, Cost, (DB_Pricing_Description +1):(ncol(Raw_Database_Pricing))) %>%
-  mutate(Cost = as.numeric(Cost))
+  mutate(Cost = as.numeric(Cost)) %>%
+  subset(select = -c(4:7))
 
 ###############################
 ## Look at pricing information.
 ## Create a simple table of pricing information.
 Cost1 <- Tidy_Database_Pricing %>%
-  group_by(Database) %>%
-  spread(Fiscal_Year,Cost) %>%
-  subset(select = -c(2,3)) %>%
+  spread(Fiscal_Year,Cost)
+
 ## Adds a Total_Cost field with the sum of the cost.
-Cost1$Total_Cost<- rowSums(Cost1[6:10], na.rm=TRUE)
+Cost1$Total_Cost<- rowSums(Cost1[4:8], na.rm=TRUE)
+
 ## Filters our databases without pricing and arranges in order from $$$$ to $.
 Cost2 <- Cost1 %>%
   filter(Total_Cost > 0) %>%
   arrange(desc(Total_Cost))
 
 
-
 CostGraph1 <- Tidy_Database_Pricing %>%
   filter(Database=="Business Source Complete") %>%
   ggplot(aes(x=Fiscal_Year,y=Cost)) + geom_bar(stat="identity")
 CostGraph1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -243,6 +322,29 @@ CPU_Tidy <-  rbind.data.frame(CPU_Usage, CPU_Cost)
 
 CPU_Tidy1 <- CPU_Tidy %>%
   filter(Database =="Academic Search Complete")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #############################
 ## GRAPHING USAGE
@@ -313,14 +415,13 @@ Graph4
 
 ###############################
 ##Exporting
-## I'm spreading the data back into a more familiar view. Things more about this.
+## I'm spreading the data back into a more familiar view.
 ## Unite Year and Month to make sorting easier.
 
 BasicCounterReport <- Tidy_DB1_data %>%
   spread(Date, Usage, convert=TRUE,fill = 0) %>%
   arrange(Database,Platform)
 
-## Divide data into actual databases and EDS results
 ## This adds a new column for the total.
 BasicCounterReport$Total <- rowSums(BasicCounterReport[5:46])
 
