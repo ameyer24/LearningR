@@ -397,7 +397,24 @@ Graph5 <- Tidy_DB1_data %>%
   geom_line(aes(group=User_Activity))
 Graph5
 
-
+## Bar Graph grouped by seasons and then year.
+Graph6 <- Tidy_DB1_data %>%
+  filter(Database=="Business Source Complete") %>%
+  mutate(Year = year(Date), Month=month(Date)) %>%
+  filter(Year>2013) %>%
+  mutate(Academic_Term = derivedFactor(
+    "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
+    "S2 (Summer)" = (Month==5 | Month==6 | Month==7 | Month==8),
+    "S3 (Fall)" = (Month==9 | Month==10 | Month==11 | Month==12),
+    .default = "Unknown"
+  )) %>%
+  mutate(Academic_Year = paste(Year, Academic_Term, sep=" ")) %>%
+  group_by(Database, Publisher, Platform, User_Activity, Academic_Term, Year)%>%
+  summarize(Usage=sum(Usage))%>%
+  ggplot(aes(Academic_Term, Usage, fill=factor(Year))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(. ~ User_Activity)
+Graph6
 
 
 
@@ -415,19 +432,3 @@ Graph5
 
 
 ## End Graphing Section
-
-###############################
-##Exporting
-## I'm spreading the data back into a more familiar view.
-## Unite Year and Month to make sorting easier.
-
-BasicCounterReport <- Tidy_DB1_data %>%
-  spread(Date, Usage, convert=TRUE,fill = 0) %>%
-  arrange(Database,Platform)
-
-## This adds a new column for the total.
-BasicCounterReport$Total <- rowSums(BasicCounterReport[5:46])
-
-## Just for fun... write this to Excel.
-write.xlsx(BasicCounterReport, "C:/Users/ameyer/Desktop/BasicCounterReport.xlsx",sheetName = "data")
-write.xlsx(Tidy_DB1_data, "C:/Users/ameyer/Desktop/TidyReport.xlsx",sheetName = "data")
