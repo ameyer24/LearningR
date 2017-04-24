@@ -137,7 +137,8 @@ Mutated1 <- Tidy_DB1_data %>%
 Summary1 <- Tidy_DB1_data %>%
   filter(Date >= 2013) %>% # Update this filter to create customized date ranges.
   spread(Date, Usage, convert=TRUE,fill = 0) %>%
-  arrange(Database,Platform)
+  arrange(Database,Platform) %>%
+  write_csv(paste(export_folder, "Summary1.csv",sep="/"))
 
 ## Summarize Usage on the Calendar Year
 Summary2 <- Tidy_DB1_data %>%
@@ -169,17 +170,8 @@ Summary4 <- Tidy_DB1_data %>%
   mutate(Fiscal_Year = paste("FY", Fiscal_Year, sep=" ")) %>%
   group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
-  spread(Fiscal_Year, Total_Usage)
-
-
-## If the sum "regular searches" for a database is less than 10 - classify as "EDS_Search.
-Summary5 <- Tidy_DB1_data %>%
-  group_by(Database, Publisher, User_Activity) %>%
-  filter(User_Activity =="Record Views")%>%
-  summarize(Sum_Record_Views= sum(Usage)) %>%
-  mutate(DB_Value = ifelse(Sum_Record_Views >10, "Core","EDS")) %>%
-  arrange(desc(Sum_Record_Views))
-
+  spread(Fiscal_Year, Total_Usage) %>%
+  write_csv(paste(export_folder, "Summary4.csv",sep="/"))
 
 
 
