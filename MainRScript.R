@@ -195,11 +195,7 @@ Summary4 <- Tidy_DB1_data %>%
 DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   distinct(Database, Publisher,Platform, Year) %>%
-  mutate(Price ="") %>%
-  mutate(Notes = "") %>%
-  mutate(Category="") %>%
-  mutate(Ordering_Site = "") %>%
-  mutate(Ordering_Cycle = "") %>%
+  mutate(Price ="", Notes="", Fund="", Ordering_Site="", Ordering_Cycle="Fiscal Year") %>%
   spread(Year,Price) %>%
   write_csv(paste(export_folder, "DB_Pricing_Blank.csv",sep="/"))
 
@@ -311,10 +307,14 @@ FY_Cost <- Raw_Database_Pricing %>%
   mutate(Measurement = "Cost")
 
 ## I've forced the Usage and Cost into dataframes with similar shapes and columns.
-## Now what?
+## Now I combine them on rows
 
+FY_Overview <- do.call("rbind",list((as.data.frame(FY_Usage)), (as.data.frame(FY_Cost))))
 
-
+## Testing
+FY_Overview_Test <- FY_Overview %>%
+  filter(Database=="Business Source Complete") %>%
+  spread(Fiscal_Year, Measure)
 
 
 
