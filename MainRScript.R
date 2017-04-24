@@ -125,9 +125,9 @@ Mutated1 <- Tidy_DB1_data %>%
     .default = "Unknown"
   )) %>%
   mutate(Academic_Term = derivedFactor(
-    "Spring" = (Month==1 | Month==2 | Month==3 | Month==4),
-    "Summer" = (Month==5 | Month==6 | Month==7 | Month==8),
-    "Fall" = (Month==9 | Month==10 | Month==11 | Month==12),
+    "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
+    "S2 (Summer)" = (Month==5 | Month==6 | Month==7 | Month==8),
+    "S3 (Fall)" = (Month==9 | Month==10 | Month==11 | Month==12),
     .default = "Unknown"
   )) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))
@@ -300,16 +300,18 @@ FY_Usage <- Tidy_DB1_data %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
   group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
-  summarize(Measure = sum(Usage))
+  summarize(Measure = sum(Usage)) %>% 
+  plyr::rename(replace = c("User_Activity" = "Measurement"))
 
 FY_Cost <- Raw_Database_Pricing %>%
   gather(Fiscal_Year, Cost, (DB_Pricing_Description +1):(ncol(Raw_Database_Pricing))) %>%
-  mutate(Cost = as.numeric(Cost), Fiscal_Year = as.numeric(Fiscal_Year)) %>%
+  mutate(Measure = as.numeric(Cost), Fiscal_Year = as.numeric(Fiscal_Year)) %>%
   subset(select = -c(3:7)) %>%
+  subset(select = -c(4)) %>%
   mutate(Measurement = "Cost")
 
-class(FY_Usage$Fiscal_Year)
-
+## I've forced the Usage and Cost into dataframes with similar shapes and columns.
+## Now what?
 
 
 
@@ -341,56 +343,76 @@ Graph1
 ## Filter by database and User Activity
 Graph2 <- Tidy_DB1_data %>%
   filter(User_Activity=="Record Views") %>%
-  filter(Database=="CINAHL Complete") %>%
+  filter(Database=="Business Source Complete") %>%
   ggplot() +
   geom_line(mapping = aes(x=Date, y=Usage, color=Database)) +
   scale_x_yearmon()
 Graph2
 
 ## Filtered by Database and Summed by Year.
-Graph1_1 <- Tidy_DB1_data %>%
+Graph3 <- Tidy_DB1_data %>%
   filter(Database=="Business Source Complete") %>%
-  ## sum by year?
+  mutate(Year=year(Date)) %>%
+  group_by(Database, Publisher, Platform, User_Activity, Year)%>%
+  summarize(Usage=sum(Usage)) %>%
   ggplot() +
-  geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity)) +
-  scale_x_yearmon()
-Graph1_1
-
-
-
-## Uses the "mutated" data frame to academic term analysis
-
-Graph3Data <- Mutated1 %>%
-  filter(Database=="Academic Search Complete") %>%
-  filter(Year>2013) %>%
-  mutate(Academic_Season = paste(Year, Academic_Term, sep="-")) %>%
-  group_by(Database, Publisher, Platform, User_Activity, Academic_Season)%>%
-  summarize(Usage=sum(Usage))
-
-Graph3 <- Graph3Data %>%
-  ggplot(aes(x=Academic_Season,y=Usage, fill=User_Activity)) +
-  geom_bar(stat="identity")
+  geom_line(mapping = aes(x=Year, y=Usage, color=User_Activity))
 Graph3
 
-Graph3_1 <- Mutated1 %>%
-  filter(Database=="Academic Search Complete") %>%
-  filter(Year>2014) %>%
-  mutate(Academic_Season = paste(Year, Academic_Term, sep="-")) %>%
-  group_by(Database, Publisher, Platform, User_Activity, Academic_Season)%>%
-  summarize(Usage=sum(Usage)) %>%
-  ggplot(aes(x=Academic_Season,y=Usage, fill=User_Activity)) +
-  geom_bar(stat="identity")
-Graph3_1
+## Filtered by database and year and then summarized by academic term.
 
-Graph4 <- Mutated1 %>%
-  filter(Database=="Academic Search Complete") %>%
+Graph4 <- Tidy_DB1_data %>%
+  filter(Database=="Business Source Complete") %>%
+  mutate(Year = year(Date), Month=month(Date)) %>%
   filter(Year>2013) %>%
-  mutate(Academic_Season = paste(Year, Academic_Term, sep="-")) %>%
-  group_by(Database, Publisher, Platform, User_Activity, Academic_Season)%>%
+  mutate(Academic_Term = derivedFactor(
+    "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
+    "S2 (Summer)" = (Month==5 | Month==6 | Month==7 | Month==8),
+    "S3 (Fall)" = (Month==9 | Month==10 | Month==11 | Month==12),
+    .default = "Unknown"
+  )) %>%
+  mutate(Academic_Year = paste(Year, Academic_Term, sep=" "))%>%
+  group_by(Database, Publisher, Platform, User_Activity, Academic_Year) %>%
   summarize(Usage=sum(Usage)) %>%
-  ggplot(aes(x=Academic_Season,y=Usage)) +
-  geom_point(aes(color=User_Activity))
+  ggplot(aes(Academic_Year,Usage)) +
+  geom_line(aes(color=User_Activity, group=User_Activity))
 Graph4
+
+## Same as Graph4 but User_Activity is faceted.
+Graph5 <- Tidy_DB1_data %>%
+  filter(Database=="Business Source Complete") %>%
+  mutate(Year = year(Date), Month=month(Date)) %>%
+  filter(Year>2013) %>%
+  mutate(Academic_Term = derivedFactor(
+    "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
+    "S2 (Summer)" = (Month==5 | Month==6 | Month==7 | Month==8),
+    "S3 (Fall)" = (Month==9 | Month==10 | Month==11 | Month==12),
+    .default = "Unknown"
+  )) %>%
+  mutate(Academic_Year = paste(Year, Academic_Term, sep=" "))%>%
+  group_by(Database, Publisher, Platform, User_Activity, Academic_Year) %>%
+  summarize(Usage=sum(Usage)) %>%
+  ggplot(aes(Academic_Year,Usage)) +
+  facet_grid(. ~ User_Activity) + 
+  geom_line(aes(group=User_Activity))
+Graph5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## End Graphing Section
 
