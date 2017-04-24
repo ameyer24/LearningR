@@ -413,7 +413,7 @@ Graph6 <- Tidy_DB1_data %>%
   summarize(Usage=sum(Usage))%>%
   ggplot(aes(Academic_Term, Usage, fill=factor(Year))) +
   geom_bar(stat = "identity", position = "dodge") +
-  facet_grid(. ~ User_Activity)
+  facet_grid(User_Activity ~.)
 Graph6
 
 
