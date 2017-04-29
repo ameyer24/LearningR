@@ -117,7 +117,8 @@ Mutated1 <- Tidy_DB1_data %>%
 
 
 
-## Summmarize total usage. Arrange in descending order by database.
+## Summmarize total usage by each user activity
+## Arrange in descending order by database.
 Summary1 <- Tidy_DB1_data %>%
   group_by(Database, User_Activity) %>%
   summarize(total = sum(Usage)) %>%
@@ -185,13 +186,6 @@ Summary5 <- Tidy_DB1_data %>%
   arrange(desc(Sum_Record_Views))
 
 
-
-
-
-
-
-
-
 #############################
 ## IMPORT PRICING INFORMATION
 
@@ -230,18 +224,9 @@ Tidy_Database_Pricing <- Database_Pricing %>%
   filter(Database == "Academic Search Complete")
 
 class(Tidy_Database_Pricing$Cost)
-quarters1 <- c("q1","q2","q3","q4")
-## Attempting to divide this data into months.
-Montly_Tidy_Database_Pricing <- Tidy_Database_Pricing %>%
-  mutate(Quarterly_Cost = Cost/4)
-  
 
-##This is decent. Can I spread the yearly cost by month?
-## I'm just guessing here...
 
 Database_Pricing2 <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
-
-=======
   filter(Database =="Academic Search Complete") %>%
   gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3))%>%
   mutate(Cost = as.numeric(Cost))
@@ -251,9 +236,6 @@ Database_Pricing2 <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), co
 #   filter(Database =="Academic Search Complete") %>%
 #   gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3)) %>%
 #   mutate(Monthly_Cost = as.numeric(Cost)/12) %>%
->>>>>>> d8385a1825851b7dde30a534e404bab199e6cb51
-  
-
 
 #############################
 ##Cost per use work
