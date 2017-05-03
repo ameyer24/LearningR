@@ -154,14 +154,7 @@ Mutated1 <- Tidy_DB1_data %>%
 
 
 
-## Summmarize total usage by each user activity
-## Arrange in descending order by database.
-Summary1 <- Tidy_DB1_data %>%
-  group_by(Database, User_Activity) %>%
-  summarize(total = sum(Usage)) %>%
-  arrange(desc(total))
-=======
->>>>>>> 0cfe6e2ed9848567fb9e1d81f8d36b0152aa068f
+
 
 
 ## This "spreads" the data into a more counter like report.
@@ -170,6 +163,8 @@ Summary1 <- Tidy_DB1_data %>%
   spread(Date, Usage, convert=TRUE,fill = 0) %>%
   arrange(Database,Platform) %>%
   write_csv(paste(export_folder, "Summary1.csv",sep="/"))
+
+
 
 ## Summarize Usage on the Calendar Year
 Summary2 <- Tidy_DB1_data %>%
@@ -204,7 +199,16 @@ Summary4 <- Tidy_DB1_data %>%
   spread(Fiscal_Year, Total_Usage) %>%
   write_csv(paste(export_folder, "Summary4.csv",sep="/"))
 
-
+## What is the ratio between different measures?
+Summary5 <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  filter(Database == "Academic Search Complete") %>%
+  group_by(Database, Publisher, Year, User_Activity) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  # mutate(change = Total_Usage/lag(Total_Usage)) %>%
+  spread(User_Activity, Total_Usage) %>%
+  mutate(Viewed_Clicked = Record Views) %>%
+  write_csv(paste(export_folder, "Summary5.csv",sep="/"))
 
 
 
@@ -304,7 +308,7 @@ CostGraph1
 
 
 
-<<<<<<< HEAD
+
 class(Tidy_Database_Pricing$Cost)
 
 
@@ -318,13 +322,13 @@ Database_Pricing2 <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), co
 #   filter(Database =="Academic Search Complete") %>%
 #   gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3)) %>%
 #   mutate(Monthly_Cost = as.numeric(Cost)/12) %>%
-=======
 
 
 
 
 
->>>>>>> 0cfe6e2ed9848567fb9e1d81f8d36b0152aa068f
+
+
 
 #############################
 ##Cost per use work
@@ -384,8 +388,9 @@ Graph1
 Graph2 <- Tidy_DB1_data %>%
   filter(User_Activity=="Record Views") %>%
   filter(Database=="Business Source Complete") %>%
-  ggplot() +
-  geom_line(mapping = aes(x=Date, y=Usage, color=Database)) +
+  ggplot(aes(Date, Usage)) +
+  geom_line(mapping = aes(color=Database)) +
+  geom_smooth(span=0.7) +
   scale_x_yearmon()
 Graph2
 
@@ -400,7 +405,6 @@ Graph3 <- Tidy_DB1_data %>%
 Graph3
 
 ## Filtered by database and year and then summarized by academic term.
-
 Graph4 <- Tidy_DB1_data %>%
   filter(Database=="Business Source Complete") %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
