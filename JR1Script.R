@@ -23,6 +23,9 @@ export_folder <- "C:/Users/ameyer/Desktop/CounterReportsReportsJR1"
 ## Define "Cleaner" functions.
 ## This function reads from CSV files.
 
+files <- dir(folder, pattern ="*.csv", full.names = TRUE)
+files
+
 JR1r4_CSV_Cleaner <- function(file){
   require(zoo)
   JR1_Import <- read_csv(file, skip=7, col_names = TRUE)
