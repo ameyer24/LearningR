@@ -18,7 +18,6 @@ library(lubridate)
 ## Setting up the folder pathway.
 input <- "C:/DataScience/inputs"
 output <- "C:/DataScience/outputs"
-
 DB1folder <- "C:/DataScience/inputs/DB1Reports"
 JR1folder <- "C:/DataScience/inputs/JR1Reports"
 ##Defining functions to load the data from DB1 Reports.
@@ -201,15 +200,7 @@ Summary4 <- Tidy_DB1_data %>%
   spread(Fiscal_Year, Total_Usage) %>%
   write_csv(paste(output, "Summary4.csv",sep="/"))
 
-## What is the ratio between different measures?
-Summary5 <- Tidy_DB1_data %>%
-  mutate(Year = year(Date)) %>%
-  filter(Database == "Academic Search Complete") %>%
-  group_by(Database, Publisher, Year, User_Activity) %>%
-  summarize(Total_Usage= sum(Usage)) %>%
-  # mutate(change = Total_Usage/lag(Total_Usage)) %>%
-  spread(User_Activity, Total_Usage) %>%
-  write_csv(paste(output, "Summary5.csv",sep="/"))
+
 
 
 
