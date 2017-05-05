@@ -19,9 +19,9 @@ library(lubridate)
 input <- "C:/DataScience/inputs"
 output <- "C:/DataScience/outputs"
 
-
 DB1folder <- "C:/DataScience/inputs/DB1Reports"
-##Defining functions to load the data.
+JR1folder <- "C:/DataScience/inputs/JR1Reports"
+##Defining functions to load the data from DB1 Reports.
 
 load_CSV_DB1 <- function(path) { 
   csv_files <- dir(path, pattern = "*.CSV", full.names = TRUE)
@@ -50,12 +50,41 @@ load_excel_DB1 <- function(path) {
   })
   do.call(rbind, tables)
 }
-
+## Loading DB1 data.
 Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
 
 
+## Defining Functions to Load JR1 Data.
+load_CSV_JR1 <- function(path) { 
+  csv_files <- dir(path, pattern = "*.CSV", full.names = TRUE)
+  tables <- lapply(csv_files, function(file){
+    file %>%
+      read_csv(skip=7, col_names = TRUE) %>%
+      slice(-1) %>%
+      subset(select = -c(8,9,10)) %>%
+      gather(Date, Usage, -c(1:7)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))
+  })
+  do.call(rbind, tables)
+}
 
+load_excel_JR1 <- function(path) { 
+  excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel_files, function(file){
+    file %>%
+      read_excel(skip=7, col_names = TRUE) %>%
+      slice(-1) %>%
+      subset(select = -c(8,9,10)) %>%
+      gather(Date, Usage, -c(1:7)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))
+  })
+  do.call(rbind, tables)
+}
 
+## Loading JR1 data.
+Tidy_JR1_data <-unique(rbind(load_CSV_JR1(JR1folder),load_excel_JR1(JR1folder)))
 
 
 
