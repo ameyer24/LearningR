@@ -108,7 +108,7 @@ unique(c(Tidy_DB1_data$Publisher))
 
 ## See what platforms we have in the dataset.
 unique(c(Tidy_DB1_data$Platform))
-
+unique(c(Tidy_JR1_data$Platform))
 ## See what databases we have in the dataset.
 unique(c(Tidy_DB1_data$Database))
 
@@ -134,24 +134,6 @@ Mutated1 <- Tidy_DB1_data %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))
 
   
-## Mutate to combine "similar" databases and/or upgrades.
-## I'm going to do this all manually.
-## I'm going to try all the existing data and just add to it.
-# ## These nested ifelses are nasty... is there a better way!!?
-# Mutated2 <- Tidy_DB1_data %>%
-#   mutate(Database_Name = 
-#            ifelse((Database == "Academic Search Complete"|Database == "Academic Search Elite"),
-#                   "Academic Search Family",
-#                   ifelse((Database == "CINAHL Complete" |Database == "CINAHL"),
-#                          "CINAHL Family",
-#                          ifelse((Database == "MEDLINE Complete" |Database == "MEDLINE"),
-#                                 "Medline Family",
-#                                 Database)
-#                          )
-#                   )
-#          )
-# 
-#            
 
 
 
@@ -159,24 +141,22 @@ Mutated1 <- Tidy_DB1_data %>%
 
 
 ## This "spreads" the data into a more counter like report.
-Summary1 <- Tidy_DB1_data %>%
+DBSummary1 <- Tidy_DB1_data %>%
   filter(Date >= 2013) %>% # Update this filter to create customized date ranges.
   spread(Date, Usage, convert=TRUE) %>%
   arrange(Database,Platform) %>%
-  write_csv(paste(output, "Summary1.csv",sep="/"))
-
-
+  write_csv(paste(output, "DBSummary1.csv",sep="/"))
 
 ## Summarize Usage on the Calendar Year
-Summary2 <- Tidy_DB1_data %>%
+DBSummary2 <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   group_by(Database, Publisher, User_Activity, Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Year, Total_Usage) %>%
-  write_csv(paste(output, "Summary2.csv",sep="/"))
+  write_csv(paste(output, "DBSummary2.csv",sep="/"))
 
 ## Summarize Usage on the Academic Year
-Summary3 <- Tidy_DB1_data %>%
+DBSummary3 <- Tidy_DB1_data %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   mutate(Academic_Term = derivedFactor(
     "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
@@ -188,23 +168,36 @@ Summary3 <- Tidy_DB1_data %>%
   group_by(Database, Publisher, User_Activity, Acad_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Acad_Year, Total_Usage) %>%
-  write_csv(paste(output, "Summary3.csv",sep="/"))
+  write_csv(paste(output, "DBSummary3.csv",sep="/"))
 
 ## Summarize on the Fiscal Year
-Summary4 <- Tidy_DB1_data %>%
+DBSummary4 <- Tidy_DB1_data %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
   mutate(Fiscal_Year = paste("FY", Fiscal_Year, sep=" ")) %>%
   group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Fiscal_Year, Total_Usage) %>%
-  write_csv(paste(output, "Summary4.csv",sep="/"))
+  write_csv(paste(output, "DBSummary4.csv",sep="/"))
 
+## Write Tidy_JR1 to excel.
+write_csv(Tidy_JR1_data, paste(output, "TidyJR1.csv",sep="/"))
 
+## Spreads the tidy data into longer form.
+JRSummary1 <- Tidy_JR1_data %>%
+  filter(Date >= 2012) %>% # Update this filter to create customized date ranges.
+  spread(Date, Usage, convert=TRUE) %>%
+  arrange(Journal,Platform) %>%
+  write_csv(paste(output, "JRSummary1.csv",sep="/"))
 
-
-
-
+## Summarize data by platform and calendar year.
+JRSummary2 <- Tidy_JR1_data %>%
+  filter(Date >= 2014) %>%
+  mutate(Year = year(Date)) %>%
+  group_by(Platform, Year) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  spread(Year, Total_Usage) %>%
+  write_csv(paste(output, "JRSummary2.csv",sep="/"))
 
 
 
