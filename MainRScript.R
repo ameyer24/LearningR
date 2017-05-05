@@ -16,9 +16,11 @@ library(lubridate)
 
 ## READING THE FILES AND TIDYING THE DATA
 ## Setting up the folder pathway.
-folder <- "C:/Users/ameyer/Desktop/CounterReports"
-export_folder <- "C:/Users/ameyer/Desktop/CounterReportsReports"
+input <- "C:/DataScience/inputs"
+output <- "C:/DataScience/outputs"
 
+
+folder <- "C:/DataScience/inputs/DB1Reports"
 ##Defining functions to load the data.
 
 load_CSV_DB1 <- function(path) { 
