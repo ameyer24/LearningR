@@ -180,7 +180,6 @@ Summary5 <- Tidy_DB1_data %>%
   summarize(Total_Usage= sum(Usage)) %>%
   # mutate(change = Total_Usage/lag(Total_Usage)) %>%
   spread(User_Activity, Total_Usage) %>%
-  mutate(Viewed_Clicked = Record Views) %>%
   write_csv(paste(output, "Summary5.csv",sep="/"))
 
 
