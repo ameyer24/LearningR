@@ -1,12 +1,12 @@
 ## OVERVIEW AND SET UP
 
-## Install packages.
+
+## INSTALLING AND LOADING PACKAGES.
 install.packages("tidyverse")
 install.packages("readxl")
 install.packages("xlsx")
 install.packages("zoo")
 install.packages("mosaic")
-## Load Packages.
 library(mosaic)
 library(xlsx)
 library(tidyverse)
@@ -16,73 +16,75 @@ library(lubridate)
 
 ## READING THE FILES AND TIDYING THE DATA
 ## Setting up the folder pathway.
-folder <- "C:/Users/ameyer/Desktop/CounterReports"
-export_folder <- "C:/Users/ameyer/Desktop/CounterReportsReports"
+input <- "C:/DataScience/inputs"
+output <- "C:/DataScience/outputs"
 
-## Define "Cleaner" functions.
-## This function reads from CSV files.
-DB1r4_CSV_Cleaner <- function(file){
-  require(zoo)
-  x <- read_csv(file, skip=7, col_names = TRUE)
-  x <- subset(x, select = -c(5))
-  x <- gather(x, Date, Usage, 5:ncol(x))
-  x$Date <- as.yearmon(x$Date, "%b-%Y")
-  return(x)
-}
+DB1folder <- "C:/DataScience/inputs/DB1Reports"
+JR1folder <- "C:/DataScience/inputs/JR1Reports"
+##Defining functions to load the data from DB1 Reports.
 
-## This function reads from Excel files.
-DB1r4_xl_Cleaner <- function(file){
-  require(zoo)
-  x <- read_excel(file, skip=7, col_names = TRUE)
-  x <- subset(x, select = -c(5))
-  x <- gather(x, Date, Usage, 5:ncol(x))
-  x$Date <- as.yearmon(x$Date, "%b-%Y")
-  return(x)
-}
-
-load_csv_data <- function(path) {
-  files <- dir(path, pattern ="*.CSV", full.names = TRUE)
-  tables <- lapply(files, DB1r4_CSV_Cleaner)
+load_CSV_DB1 <- function(path) { 
+  csv_files <- dir(path, pattern = "*.CSV", full.names = TRUE)
+  tables <- lapply(csv_files, function(file){
+    file %>%
+      read_csv(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage)) %>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
+  })
   do.call(rbind, tables)
 }
 
-load_xl_data <- function(path) {
-  files <- dir(path, pattern ="*.xl*", full.names = TRUE)
-  tables <- lapply(files, DB1r4_xl_Cleaner)
+load_excel_DB1 <- function(path) { 
+  excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel_files, function(file){
+    file %>%
+      read_excel(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))%>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
+  })
+  do.call(rbind, tables)
+}
+## Loading DB1 data.
+Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
+
+
+## Defining Functions to Load JR1 Data.
+load_CSV_JR1 <- function(path) { 
+  csv_files <- dir(path, pattern = "*.CSV", full.names = TRUE)
+  tables <- lapply(csv_files, function(file){
+    file %>%
+      read_csv(skip=7, col_names = TRUE) %>%
+      slice(-1) %>%
+      subset(select = -c(8,9,10)) %>%
+      gather(Date, Usage, -c(1:7)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))
+  })
   do.call(rbind, tables)
 }
 
+load_excel_JR1 <- function(path) { 
+  excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel_files, function(file){
+    file %>%
+      read_excel(skip=7, col_names = TRUE) %>%
+      slice(-1) %>%
+      subset(select = -c(8,9,10)) %>%
+      gather(Date, Usage, -c(1:7)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))
+  })
+  do.call(rbind, tables)
+}
 
-Tidy_DB1_data <-unique(rbind(load_csv_data(folder),load_xl_data(folder)))
-## Do a little more tidying.
-## Remove space from the column name.
-Tidy_DB1_data <- plyr::rename(Tidy_DB1_data, replace = c("User Activity" = "User_Activity"))
-## Convert Usage to a number.
-Tidy_DB1_data$Usage <- as.numeric(Tidy_DB1_data$Usage)
-class(Tidy_DB1_data$Date)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## Loading JR1 data.
+Tidy_JR1_data <-unique(rbind(load_CSV_JR1(JR1folder),load_excel_JR1(JR1folder)))
 
 
 
@@ -162,7 +164,7 @@ Summary1 <- Tidy_DB1_data %>%
   filter(Date >= 2013) %>% # Update this filter to create customized date ranges.
   spread(Date, Usage, convert=TRUE) %>%
   arrange(Database,Platform) %>%
-  write_csv(paste(export_folder, "Summary1.csv",sep="/"))
+  write_csv(paste(output, "Summary1.csv",sep="/"))
 
 
 
@@ -172,7 +174,7 @@ Summary2 <- Tidy_DB1_data %>%
   group_by(Database, Publisher, User_Activity, Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Year, Total_Usage) %>%
-  write_csv(paste(export_folder, "Summary2.csv",sep="/"))
+  write_csv(paste(output, "Summary2.csv",sep="/"))
 
 ## Summarize Usage on the Academic Year
 Summary3 <- Tidy_DB1_data %>%
@@ -187,7 +189,7 @@ Summary3 <- Tidy_DB1_data %>%
   group_by(Database, Publisher, User_Activity, Acad_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Acad_Year, Total_Usage) %>%
-  write_csv(paste(export_folder, "Summary3.csv",sep="/"))
+  write_csv(paste(output, "Summary3.csv",sep="/"))
 
 ## Summarize on the Fiscal Year
 Summary4 <- Tidy_DB1_data %>%
@@ -197,7 +199,7 @@ Summary4 <- Tidy_DB1_data %>%
   group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Fiscal_Year, Total_Usage) %>%
-  write_csv(paste(export_folder, "Summary4.csv",sep="/"))
+  write_csv(paste(output, "Summary4.csv",sep="/"))
 
 ## What is the ratio between different measures?
 Summary5 <- Tidy_DB1_data %>%
@@ -207,8 +209,7 @@ Summary5 <- Tidy_DB1_data %>%
   summarize(Total_Usage= sum(Usage)) %>%
   # mutate(change = Total_Usage/lag(Total_Usage)) %>%
   spread(User_Activity, Total_Usage) %>%
-  mutate(Viewed_Clicked = Record Views) %>%
-  write_csv(paste(export_folder, "Summary5.csv",sep="/"))
+  write_csv(paste(output, "Summary5.csv",sep="/"))
 
 
 
@@ -225,10 +226,10 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
   distinct(Database, Publisher,Platform, Year) %>%
   mutate(Price ="", Notes="", Fund="", Ordering_Site="", Ordering_Cycle="Fiscal Year") %>%
   spread(Year,Price) %>%
-  write_csv(paste(export_folder, "DB_Pricing_Blank.csv",sep="/"))
+  write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
 
 ## Imports the pricing information file.
-Raw_Database_Pricing <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
+Raw_Database_Pricing <- read_csv(paste(output, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
 ## Creating some variables to describe the size and shape of the pricing data.
 ## This sets the number of descriptive columns at 7 (the rest are years)
@@ -312,7 +313,7 @@ CostGraph1
 class(Tidy_Database_Pricing$Cost)
 
 
-Database_Pricing2 <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
+Database_Pricing2 <- read_csv(paste(output, "DB_Pricing.csv",sep="/"), col_names = TRUE)
   filter(Database =="Academic Search Complete") %>%
   gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3))%>%
   mutate(Cost = as.numeric(Cost))
