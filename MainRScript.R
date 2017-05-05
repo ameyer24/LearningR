@@ -20,7 +20,7 @@ input <- "C:/DataScience/inputs"
 output <- "C:/DataScience/outputs"
 
 
-folder <- "C:/DataScience/inputs/DB1Reports"
+DB1folder <- "C:/DataScience/inputs/DB1Reports"
 ##Defining functions to load the data.
 
 load_CSV_DB1 <- function(path) { 
@@ -51,7 +51,7 @@ load_excel_DB1 <- function(path) {
   do.call(rbind, tables)
 }
 
-Tidy_DB1_data <-unique(rbind(load_CSV_DB1(folder),load_excel_DB1(folder)))
+Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
 
 
 
@@ -135,7 +135,7 @@ Summary1 <- Tidy_DB1_data %>%
   filter(Date >= 2013) %>% # Update this filter to create customized date ranges.
   spread(Date, Usage, convert=TRUE) %>%
   arrange(Database,Platform) %>%
-  write_csv(paste(export_folder, "Summary1.csv",sep="/"))
+  write_csv(paste(output, "Summary1.csv",sep="/"))
 
 
 
@@ -145,7 +145,7 @@ Summary2 <- Tidy_DB1_data %>%
   group_by(Database, Publisher, User_Activity, Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Year, Total_Usage) %>%
-  write_csv(paste(export_folder, "Summary2.csv",sep="/"))
+  write_csv(paste(output, "Summary2.csv",sep="/"))
 
 ## Summarize Usage on the Academic Year
 Summary3 <- Tidy_DB1_data %>%
@@ -160,7 +160,7 @@ Summary3 <- Tidy_DB1_data %>%
   group_by(Database, Publisher, User_Activity, Acad_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Acad_Year, Total_Usage) %>%
-  write_csv(paste(export_folder, "Summary3.csv",sep="/"))
+  write_csv(paste(output, "Summary3.csv",sep="/"))
 
 ## Summarize on the Fiscal Year
 Summary4 <- Tidy_DB1_data %>%
@@ -170,7 +170,7 @@ Summary4 <- Tidy_DB1_data %>%
   group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(Fiscal_Year, Total_Usage) %>%
-  write_csv(paste(export_folder, "Summary4.csv",sep="/"))
+  write_csv(paste(output, "Summary4.csv",sep="/"))
 
 ## What is the ratio between different measures?
 Summary5 <- Tidy_DB1_data %>%
@@ -181,7 +181,7 @@ Summary5 <- Tidy_DB1_data %>%
   # mutate(change = Total_Usage/lag(Total_Usage)) %>%
   spread(User_Activity, Total_Usage) %>%
   mutate(Viewed_Clicked = Record Views) %>%
-  write_csv(paste(export_folder, "Summary5.csv",sep="/"))
+  write_csv(paste(output, "Summary5.csv",sep="/"))
 
 
 
@@ -198,10 +198,10 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
   distinct(Database, Publisher,Platform, Year) %>%
   mutate(Price ="", Notes="", Fund="", Ordering_Site="", Ordering_Cycle="Fiscal Year") %>%
   spread(Year,Price) %>%
-  write_csv(paste(export_folder, "DB_Pricing_Blank.csv",sep="/"))
+  write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
 
 ## Imports the pricing information file.
-Raw_Database_Pricing <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
+Raw_Database_Pricing <- read_csv(paste(output, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
 ## Creating some variables to describe the size and shape of the pricing data.
 ## This sets the number of descriptive columns at 7 (the rest are years)
@@ -285,7 +285,7 @@ CostGraph1
 class(Tidy_Database_Pricing$Cost)
 
 
-Database_Pricing2 <- read_csv(paste(export_folder, "DB_Pricing.csv",sep="/"), col_names = TRUE)
+Database_Pricing2 <- read_csv(paste(output, "DB_Pricing.csv",sep="/"), col_names = TRUE)
   filter(Database =="Academic Search Complete") %>%
   gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3))%>%
   mutate(Cost = as.numeric(Cost))
