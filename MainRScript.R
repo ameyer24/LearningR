@@ -21,57 +21,35 @@ export_folder <- "C:/Users/ameyer/Desktop/CounterReportsReports"
 
 ##Defining functions to load the data.
 
-load_csv_data <- function(path) { 
+load_CSV_DB1 <- function(path) { 
   csv_files <- dir(path, pattern = "*.CSV", full.names = TRUE)
   tables <- lapply(csv_files, function(file){
-    x <- read_csv(file, skip=7, col_names = TRUE)
-    x <- subset(x, select = -c(5))
-    x <- gather(x, Date, Usage, 5:ncol(x))
-    x$Date <- as.yearmon(x$Date, "%b-%Y")
-    return(x)
+    file %>%
+      read_csv(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage)) %>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
   })
   do.call(rbind, tables)
 }
 
-load_excel_data <- function(path) { 
+load_excel_DB1 <- function(path) { 
   excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
   tables <- lapply(excel_files, function(file){
-    x <- read_excel(file, skip=7, col_names = TRUE)
-    x <- subset(x, select = -c(5))
-    x <- gather(x, Date, Usage, 5:ncol(x))
-    x$Date <- as.yearmon(x$Date, "%b-%Y")
-    return(x)
+    file %>%
+      read_excel(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))%>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
   })
   do.call(rbind, tables)
 }
 
-
-Tidy_DB1_data <-unique(rbind(load_csv_data(folder),load_excel_data(folder)))
-## Do a little more tidying.
-## Remove space from the column name.
-Tidy_DB1_data <- plyr::rename(Tidy_DB1_data, replace = c("User Activity" = "User_Activity"))
-## Convert Usage to a number.
-Tidy_DB1_data$Usage <- as.numeric(Tidy_DB1_data$Usage)
-class(Tidy_DB1_data$Date)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Tidy_DB1_data <-unique(rbind(load_CSV_DB1(folder),load_excel_DB1(folder)))
 
 
 
