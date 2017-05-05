@@ -1,12 +1,12 @@
 ## OVERVIEW AND SET UP
-## Testing this branch.
-## Install packages.
+
+
+## INSTALLING AND LOADING PACKAGES.
 install.packages("tidyverse")
 install.packages("readxl")
 install.packages("xlsx")
 install.packages("zoo")
 install.packages("mosaic")
-## Load Packages.
 library(mosaic)
 library(xlsx)
 library(tidyverse)
@@ -19,41 +19,34 @@ library(lubridate)
 folder <- "C:/Users/ameyer/Desktop/CounterReports"
 export_folder <- "C:/Users/ameyer/Desktop/CounterReportsReports"
 
-## Define "Cleaner" functions.
-## This function reads from CSV files.
-DB1r4_CSV_Cleaner <- function(file){
-  require(zoo)
-  x <- read_csv(file, skip=7, col_names = TRUE)
-  x <- subset(x, select = -c(5))
-  x <- gather(x, Date, Usage, 5:ncol(x))
-  x$Date <- as.yearmon(x$Date, "%b-%Y")
-  return(x)
-}
+##Defining functions to load the data.
 
-## This function reads from Excel files.
-DB1r4_xl_Cleaner <- function(file){
-  require(zoo)
-  x <- read_excel(file, skip=7, col_names = TRUE)
-  x <- subset(x, select = -c(5))
-  x <- gather(x, Date, Usage, 5:ncol(x))
-  x$Date <- as.yearmon(x$Date, "%b-%Y")
-  return(x)
-}
-
-load_csv_data <- function(path) {
-  files <- dir(path, pattern ="*.CSV", full.names = TRUE)
-  tables <- lapply(files, DB1r4_CSV_Cleaner)
+load_csv_data <- function(path) { 
+  csv_files <- dir(path, pattern = "*.CSV", full.names = TRUE)
+  tables <- lapply(csv_files, function(file){
+    x <- read_csv(file, skip=7, col_names = TRUE)
+    x <- subset(x, select = -c(5))
+    x <- gather(x, Date, Usage, 5:ncol(x))
+    x$Date <- as.yearmon(x$Date, "%b-%Y")
+    return(x)
+  })
   do.call(rbind, tables)
 }
 
-load_xl_data <- function(path) {
-  files <- dir(path, pattern ="*.xl*", full.names = TRUE)
-  tables <- lapply(files, DB1r4_xl_Cleaner)
+load_excel_data <- function(path) { 
+  excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel_files, function(file){
+    x <- read_excel(file, skip=7, col_names = TRUE)
+    x <- subset(x, select = -c(5))
+    x <- gather(x, Date, Usage, 5:ncol(x))
+    x$Date <- as.yearmon(x$Date, "%b-%Y")
+    return(x)
+  })
   do.call(rbind, tables)
 }
 
 
-Tidy_DB1_data <-unique(rbind(load_csv_data(folder),load_xl_data(folder)))
+Tidy_DB1_data <-unique(rbind(load_csv_data(folder),load_excel_data(folder)))
 ## Do a little more tidying.
 ## Remove space from the column name.
 Tidy_DB1_data <- plyr::rename(Tidy_DB1_data, replace = c("User Activity" = "User_Activity"))
