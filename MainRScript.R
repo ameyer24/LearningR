@@ -131,7 +131,7 @@ Mutated1 <- Tidy_DB1_data %>%
     .default = "Unknown"
   )) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))
-<<<<<<< HEAD
+
   
 ## Mutate to combine "similar" databases and/or upgrades.
 ## I'm going to do this all manually.
@@ -160,7 +160,7 @@ Mutated1 <- Tidy_DB1_data %>%
 ## This "spreads" the data into a more counter like report.
 Summary1 <- Tidy_DB1_data %>%
   filter(Date >= 2013) %>% # Update this filter to create customized date ranges.
-  spread(Date, Usage, convert=TRUE,fill = 0) %>%
+  spread(Date, Usage, convert=TRUE) %>%
   arrange(Database,Platform) %>%
   write_csv(paste(export_folder, "Summary1.csv",sep="/"))
 
@@ -378,7 +378,7 @@ FY_Overview_Test <- FY_Overview %>%
 
 ## Filter by database
 Graph1 <- Tidy_DB1_data %>%
-  filter(Database=="Business Source Complete") %>%
+  filter(Database=="Chicago Manual of Style Online") %>%
   ggplot() +
   geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity)) +
   scale_x_yearmon()
