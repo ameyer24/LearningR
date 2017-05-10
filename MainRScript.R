@@ -23,7 +23,7 @@ JR1folder <- "C:/DataScience/inputs/JR1Reports"
 ##Defining functions to load the data from DB1 Reports.
 
 load_CSV_DB1 <- function(path) { 
-  csv_files <- dir(path, pattern = "*.CSV", full.names = TRUE)
+  csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
   tables <- lapply(csv_files, function(file){
     file %>%
       read_csv(skip=7, col_names = TRUE) %>%
@@ -55,7 +55,7 @@ Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
 
 ## Defining Functions to Load JR1 Data.
 load_CSV_JR1 <- function(path) { 
-  csv_files <- dir(path, pattern = "*.CSV", full.names = TRUE)
+  csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
   tables <- lapply(csv_files, function(file){
     file %>%
       read_csv(skip=7, col_names = TRUE) %>%
