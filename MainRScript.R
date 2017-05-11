@@ -249,6 +249,12 @@ CostGraph1 <- Tidy_DB_Pricing %>%
 CostGraph1
 
 
+CostGraph2 <- Tidy_DB_Pricing %>%
+  filter(!is.na(Cost)) %>%
+  ggplot(aes(x=Fiscal_Year,y=Cost, color=Fund)) + geom_bar(stat="identity")
+CostGraph2
+
+
 
 
 
