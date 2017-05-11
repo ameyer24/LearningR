@@ -167,6 +167,12 @@ DBSummary3 <- Tidy_DB1_data %>%
   spread(Acad_Year, Total_Usage) %>%
   write_csv(paste(output, "DBSummary3.csv",sep="/"))
 
+DB_Academic_Year <- function(DB){
+  filter(DBSummary3, Database == DB)
+}
+
+Test <- DB_Academic_Year("CINAHL")
+
 ## Summarize on the Fiscal Year
 DBSummary4 <- Tidy_DB1_data %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
@@ -205,12 +211,12 @@ JRSummary2 <- Tidy_JR1_data %>%
 DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   distinct(Database, Publisher,Platform, Year) %>%
-  mutate(Price ="", Notes="", Fund="", Ordering_Site="", Ordering_Cycle="Fiscal Year") %>%
+  mutate(Price ="", Notes="", Fund="", Ordering_Site="", Order_Detail="Fiscal Year") %>%
   spread(Year,Price) %>%
   write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
 
 ## Imports the pricing information file.
-Raw_Database_Pricing <- read_csv(paste(output, "DB_Pricing.csv",sep="/"), col_names = TRUE)
+Raw_Database_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
 ## Creating some variables to describe the size and shape of the pricing data.
 ## This sets the number of descriptive columns at 7 (the rest are years)
@@ -375,6 +381,26 @@ Graph2 <- Tidy_DB1_data %>%
   geom_smooth(span=0.7) +
   scale_x_yearmon()
 Graph2
+
+## Filter by database. facet by user activity
+Graph2_1 <- Tidy_DB1_data %>%
+  filter(Database=="Nursing Reference Center") %>%
+  ggplot(aes(Date, Usage)) +
+  geom_line(mapping = aes(color=Database)) +
+  geom_smooth(span=0.7) +
+  scale_x_yearmon() +
+  facet_grid(User_Activity ~ .)
+Graph2_1
+
+## Filter by database. facet by user activity, scales free.
+Graph2_2 <- Tidy_DB1_data %>%
+  filter(Database=="CINAHL Complete") %>%
+  ggplot(aes(Date, Usage)) +
+  geom_line(mapping = aes(color=Database)) +
+  geom_smooth(span=0.7) +
+  scale_x_yearmon() +
+  facet_grid(User_Activity ~ ., scales = "free")
+Graph2_2
 
 ## Filtered by Database and Summed by Year.
 Graph3 <- Tidy_DB1_data %>%
