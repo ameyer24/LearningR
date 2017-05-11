@@ -84,11 +84,8 @@ load_excel_JR1 <- function(path) {
 
 ## Loading JR1 data.
 Tidy_JR1_data <-unique(rbind(load_CSV_JR1(JR1folder),load_excel_JR1(JR1folder)))
-
-
-
-
-
+## Exporting JR1 data
+write_csv(Tidy_JR1_data, paste(output, "Tidy_JR1_data.csv",sep="/"))
 
 
 
@@ -363,7 +360,7 @@ FY_Overview_Test <- FY_Overview %>%
 
 ## Filter by database
 Graph1 <- Tidy_DB1_data %>%
-  filter(Database=="Chicago Manual of Style Online") %>%
+  filter(Database=="Nursing Reference Center") %>%
   ggplot() +
   geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity)) +
   scale_x_yearmon()
@@ -372,7 +369,7 @@ Graph1
 ## Filter by database and User Activity
 Graph2 <- Tidy_DB1_data %>%
   filter(User_Activity=="Record Views") %>%
-  filter(Database=="Business Source Complete") %>%
+  filter(Database=="Nursing Reference Center") %>%
   ggplot(aes(Date, Usage)) +
   geom_line(mapping = aes(color=Database)) +
   geom_smooth(span=0.7) +
@@ -409,7 +406,7 @@ Graph4
 
 ## Same as Graph4 but User_Activity is faceted.
 Graph5 <- Tidy_DB1_data %>%
-  filter(Database=="Business Source Complete") %>%
+  filter(Database=="Nursing Reference Center") %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   filter(Year>2013) %>%
   mutate(Academic_Term = derivedFactor(
