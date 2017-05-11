@@ -207,6 +207,8 @@ JRSummary2 <- Tidy_JR1_data %>%
 
 #############################
 ## IMPORT PRICING INFORMATION
+#############################
+
 ## This creates a blank template to help with the import of pricing data.
 DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
@@ -230,19 +232,18 @@ Tidy_DB_Pricing <- Raw_Database_Pricing %>%
   mutate(Cost = as.numeric(Cost)) %>%
   subset(select = -c(6:7))
 
-###############################
+#################################
 ## Look at pricing information.
+#################################
 ## Create a simple table of pricing information; excludes databases without pricing.
 Cost1 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost))%>%
-  spread(Fiscal_Year,Cost)
+  spread(Fiscal_Year,Cost) %>%
+  write_csv(paste(output, "cost1.csv",sep="/"))
 
-
-
-## Calculate the average cost increase over time.
 
 ## Here is a simple graph of pricing for a given database.
-CostGraph1 <- Tidy_Database_Pricing %>%
+CostGraph1 <- Tidy_DB_Pricing %>%
   filter(Database=="CINAHL Complete") %>%
   ggplot(aes(x=Fiscal_Year,y=Cost)) + geom_bar(stat="identity")
 CostGraph1
@@ -282,66 +283,6 @@ CostGraph1
 
 
 
-
-
-
-
-
-
-
-
-
-
-class(Tidy_Database_Pricing$Cost)
-
-
-Database_Pricing2 <- read_csv(paste(output, "DB_Pricing.csv",sep="/"), col_names = TRUE)
-  filter(Database =="Academic Search Complete") %>%
-  gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3))%>%
-  mutate(Cost = as.numeric(Cost))
-
-# ## Trying to convert the yearly pricing information into monthly...
-# Tidy_Database_Pricing1 <-   Database_Pricing %>%
-#   filter(Database =="Academic Search Complete") %>%
-#   gather(Fiscal_Year, Cost, Num_of_years:(Num_of_years + 3)) %>%
-#   mutate(Monthly_Cost = as.numeric(Cost)/12) %>%
-
-
-
-
-
-
-
-
-#############################
-##Cost per use work
-
-## Compare the fiscal year usage to fiscal year cost for a particular database.
-## Combine data into one dataframe.
-
-FY_Usage <- Tidy_DB1_data %>%
-  mutate(Year = year(Date), Month=month(Date)) %>%
-  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
-  group_by(Database, Publisher, User_Activity, Fiscal_Year) %>%
-  summarize(Measure = sum(Usage)) %>% 
-  plyr::rename(replace = c("User_Activity" = "Measurement"))
-
-FY_Cost <- Raw_Database_Pricing %>%
-  gather(Fiscal_Year, Cost, (DB_Pricing_Description +1):(ncol(Raw_Database_Pricing))) %>%
-  mutate(Measure = as.numeric(Cost), Fiscal_Year = as.numeric(Fiscal_Year)) %>%
-  subset(select = -c(3:7)) %>%
-  subset(select = -c(4)) %>%
-  mutate(Measurement = "Cost")
-
-## I've forced the Usage and Cost into dataframes with similar shapes and columns.
-## Now I combine them on rows
-
-FY_Overview <- do.call("rbind",list((as.data.frame(FY_Usage)), (as.data.frame(FY_Cost))))
-
-## Testing
-FY_Overview_Test <- FY_Overview %>%
-  filter(Database=="Business Source Complete") %>%
-  spread(Fiscal_Year, Measure)
 
 
 
