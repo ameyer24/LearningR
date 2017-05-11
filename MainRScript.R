@@ -224,25 +224,20 @@ DB_Pricing_Description <- 7
 DB_Pricing_Years <- ncol(Raw_Database_Pricing)-DB_Pricing_Description
 
 ## Creates tidy dataframe of just database pricing.
-## Does not use the rest of the descriptive information.
-Tidy_Database_Pricing <- Raw_Database_Pricing %>%
+## Keeps only the notes and fund information.
+Tidy_DB_Pricing <- Raw_Database_Pricing %>%
   gather(Fiscal_Year, Cost, (DB_Pricing_Description +1):(ncol(Raw_Database_Pricing))) %>%
   mutate(Cost = as.numeric(Cost)) %>%
-  subset(select = -c(4:7))
+  subset(select = -c(6:7))
 
 ###############################
 ## Look at pricing information.
-## Create a simple table of pricing information.
-Cost1 <- Tidy_Database_Pricing %>%
+## Create a simple table of pricing information; excludes databases without pricing.
+Cost1 <- Tidy_DB_Pricing %>%
+  filter(!is.na(Cost))%>%
   spread(Fiscal_Year,Cost)
 
-## Adds a Total_Cost field with the sum of the cost.
-Cost1$Total_Cost<- rowSums(Cost1[4:8], na.rm=TRUE)
 
-## Filters our databases without pricing and arranges in order from $$$$ to $.
-Cost2 <- Cost1 %>%
-  filter(Total_Cost > 0) %>%
-  arrange(desc(Total_Cost))
 
 ## Calculate the average cost increase over time.
 
