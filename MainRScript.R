@@ -238,30 +238,18 @@ Tidy_DB_Pricing <- Raw_Database_Pricing %>%
 ## Create a simple table of pricing information; excludes databases without pricing.
 Cost1 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost))%>%
+  filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
   spread(Fiscal_Year,Cost) %>%
   write_csv(paste(output, "cost1.csv",sep="/"))
 
 
 ## Here is a simple graph of pricing for a given database.
 CostGraph1 <- Tidy_DB_Pricing %>%
-  filter(Database=="CINAHL Complete") %>%
-  ggplot(aes(x=Fiscal_Year,y=Cost)) + geom_bar(stat="identity")
+  filter(Database=="Business Source Complete") %>%
+  filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
+  ggplot(aes(x=Fiscal_Year,y=Cost)) +
+  geom_bar(stat="identity")
 CostGraph1
-
-
-CostGraph2 <- Tidy_DB_Pricing %>%
-  filter(!is.na(Cost)) %>%
-  ggplot(aes(x=Fiscal_Year,y=Cost, color=Fund)) + geom_bar(stat="identity")
-CostGraph2
-
-
-
-
-
-
-
-
-
 
 
 
