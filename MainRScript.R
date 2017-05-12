@@ -251,7 +251,18 @@ CostGraph1 <- Tidy_DB_Pricing %>%
   geom_bar(stat="identity")
 CostGraph1
 
+## Breakdown by Fund and Year
+## work in progress
 
+CostGraph2 <- Tidy_DB_Pricing %>%
+  filter(Fiscal_Year > 2014, Fiscal_Year <2018) %>%
+  filter(!is.na(Cost))%>%
+  group_by(Fund, Fiscal_Year, Database) %>%
+  summarize(Total_Cost=sum(Cost))%>%
+  ggplot(aes(x=Fiscal_Year,y=Total_Cost, fill=Fund)) + 
+  geom_bar(stat="identity",width = 1) +
+  facet_grid(Fund ~ .)
+CostGraph2
 
 
 
