@@ -175,6 +175,7 @@ Test <- DB_Academic_Year("CINAHL")
 
 ## Summarize on the Fiscal Year
 DBSummary4 <- Tidy_DB1_data %>%
+  filter(Database =="Business Source Complete") %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
   mutate(Fiscal_Year = paste("FY", Fiscal_Year, sep=" ")) %>%
@@ -268,7 +269,19 @@ Cost3 <- Tidy_DB_Pricing %>%
   
 ## Handle the NaN values better. Maybe with conditional logic.
 
-
+Cost4 <- Tidy_DB_Pricing %>%
+  filter(!is.na(Cost)) %>%
+  filter(Fiscal_Year < 2018) %>%
+  filter(Database=="Business Source Complete") %>%
+  arrange(Database, Fiscal_Year) %>%
+  group_by(Database) %>%
+  mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
+  mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
+  filter(Fiscal_Year > 2013) %>%
+  subset(select = -c(2:4)) %>%
+  gather(Value, Measure, -Database, -Fund, -Fiscal_Year) %>%
+  arrange(Database, Fiscal_Year) %>%
+  spread(Fiscal_Year, Measure)
 
 
 
@@ -280,9 +293,12 @@ Cost3 <- Tidy_DB_Pricing %>%
 CostGraph1 <- Tidy_DB_Pricing %>%
   filter(Database=="Business Source Complete") %>%
   filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
-  ggplot(aes(x=Fiscal_Year,y=Cost)) +
-  geom_bar(stat="identity")
-CostGraph1
+  ggplot(aes(x=Fiscal_Year,y=Cost, label=Cost)) +
+  geom_bar(stat="identity", fill="darkgreen")
+
+CostGraph1 +
+  ggtitle("Cost of Individual Subscription over Time") +
+  geom_label(aes(label=Cost), vjust=3)
 
 ## Breakdown by Fund and Year
 ## work in progress
@@ -334,12 +350,14 @@ CostGraph2
 
 
 
+
 #############################
 ## GRAPHING USAGE
 
 ## Filter by database
 Graph1 <- Tidy_DB1_data %>%
-  filter(Database=="Nursing Reference Center") %>%
+  filter(Database=="Business Source Complete") %>%
+  filter(Year>2014) %>%
   ggplot() +
   geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity)) +
   scale_x_yearmon()
@@ -357,9 +375,9 @@ Graph2
 
 ## Filter by database. facet by user activity
 Graph2_1 <- Tidy_DB1_data %>%
-  filter(Database=="Nursing Reference Center") %>%
+  filter(Database=="Business Source Complete") %>%
   ggplot(aes(Date, Usage)) +
-  geom_line(mapping = aes(color=Database)) +
+  geom_line() +
   geom_smooth(span=0.7) +
   scale_x_yearmon() +
   facet_grid(User_Activity ~ .)
@@ -367,9 +385,9 @@ Graph2_1
 
 ## Filter by database. facet by user activity, scales free.
 Graph2_2 <- Tidy_DB1_data %>%
-  filter(Database=="CINAHL Complete") %>%
+  filter(Database=="Business Source Complete") %>%
   ggplot(aes(Date, Usage)) +
-  geom_line(mapping = aes(color=Database)) +
+  geom_line() +
   geom_smooth(span=0.7) +
   scale_x_yearmon() +
   facet_grid(User_Activity ~ ., scales = "free")
