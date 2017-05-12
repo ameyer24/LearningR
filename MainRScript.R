@@ -240,7 +240,40 @@ Cost1 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost))%>%
   filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
   spread(Fiscal_Year,Cost) %>%
+  plyr::rename(.,c("2014"="FY_2014", "2015"="FY_2015","2016"="FY_2016","2017"="FY_2017")) %>%
   write_csv(paste(output, "cost1.csv",sep="/"))
+
+## Try and look at average price increases per database.
+Cost2 <- Tidy_DB_Pricing %>%
+  filter(!is.na(Cost)) %>%
+  filter(Fiscal_Year < 2018) %>%
+  arrange(Database, Fiscal_Year) %>%
+  group_by(Database) %>%
+  mutate(Cost_Last_FY=lag(Cost)) %>%
+  mutate(Change_In_Price = Cost-Cost_Last_FY) %>%
+  mutate(Change_In_Price_Percent = (Cost-Cost_Last_FY)/Cost_Last_FY) %>%
+  mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep=""))
+ 
+Cost3 <- Tidy_DB_Pricing %>%
+  filter(!is.na(Cost)) %>%
+  filter(Fiscal_Year < 2018) %>%
+  arrange(Database, Fiscal_Year) %>%
+  group_by(Database) %>%
+  mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
+  mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
+  filter(Fiscal_Year > 2013) %>%
+  subset(select = -c(2:4)) %>%
+  subset(select= -c(4:5)) %>%
+  spread(Fiscal_Year,Change_In_Price_Percent)
+  
+## Handle the NaN values better. Maybe with conditional logic.
+
+
+
+
+
+
+
 
 
 ## Here is a simple graph of pricing for a given database.
@@ -253,7 +286,6 @@ CostGraph1
 
 ## Breakdown by Fund and Year
 ## work in progress
-
 CostGraph2 <- Tidy_DB_Pricing %>%
   filter(Fiscal_Year > 2014, Fiscal_Year <2018) %>%
   filter(!is.na(Cost))%>%
