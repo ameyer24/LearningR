@@ -179,6 +179,15 @@ DBSummary4 <- Tidy_DB1_data %>%
   spread(Fiscal_Year, Total_Usage) %>%
   write_csv(paste(output, "DBSummary4.csv",sep="/"))
 
+DBSummary4_1 <- Tidy_DB1_data %>%
+  filter(Database =="Business Source Complete") %>%
+  mutate(Year = year(Date), Month=month(Date)) %>%
+  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
+  group_by(User_Activity, Fiscal_Year) %>%
+  summarize(Total_Usage= sum(Usage)) %>%
+  spread(User_Activity, Total_Usage)
+  write_csv(paste(output, "DBSummary4_1.csv",sep="/"))
+
 ## Write Tidy_JR1 to excel.
 write_csv(Tidy_JR1_data, paste(output, "TidyJR1.csv",sep="/"))
 
@@ -318,34 +327,35 @@ CostGraph2 <- Tidy_DB_Pricing %>%
   facet_grid(Fund ~ .)
 CostGraph2
 
-########################
+##########################
 ## Calculating cost per use
 ##########################
 
 ##Starting points. Let's filter for just one database.
-
 CPU1_Use <- Tidy_DB1_data %>%
-  filter(Database =="Business Source Complete") %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
   group_by(Database, Publisher,Platform, User_Activity, Fiscal_Year) %>%
   summarize(Total_Usage= sum(Usage))
 
 CPU1_Cost <- Tidy_DB_Pricing %>%
-  filter(Database=="Business Source Complete") %>%
-  subset(select = -c(4:5)) %>%
-  mutate(User_Activity = "Cost")
+  subset(select = -c(4:5))
+## This merges on the Fiscal Year. Fine for most databases
+## Might be worth doing it differently for databases on the calendar year cycle.
+CPU_Combined <- merge(CPU1_Use, CPU1_Cost, by=c("Database","Publisher","Platform","Fiscal_Year"))
 
-CPU_Combined <- CPU1_Use
-CPU_Combined$Price <- CPU1_Cost$Cost[match(CPU_Combined$Fiscal_Year, CPU1_Cost$Fiscal_Year)]
+## This match function works too. But I think merge is better.
+#CPU_Combined$Price <- CPU1_Cost$Cost[match(CPU_Combined$Fiscal_Year, CPU1_Cost$Fiscal_Year)]
 
-
-
-
-
-
+CPU_Combined$Cost_Per_User_Action <- CPU_Combined$Cost/CPU_Combined$Total_Usage
+write_csv(CPU_Combined, paste(output, "Cost_Per_Use.csv",sep="/"))
 
 
+CPU_Database <- CPU_Combined %>%
+  filter(Database=="Business Source Complete")%>%
+  subset(select=-c(6:7)) %>%
+  spread(User_Activity,Cost_Per_User_Action) %>%
+  subset(select=-c(1:3))
 
 
 
