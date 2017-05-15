@@ -5,6 +5,7 @@
 
 ###############################################################################
 # Installing and Loading Packages _____________________________________________
+###############################################################################
 install.packages("tidyverse")
 install.packages("readxl")
 install.packages("xlsx")
@@ -19,6 +20,7 @@ library(lubridate)
 
 ###############################################################################
 # Reading the files and tidying the data ______________________________________
+###############################################################################
 
 # Setting up the folders
 input <- "C:/DataScience/inputs"
@@ -90,7 +92,9 @@ load_excel_JR1 <- function(path) {
 # Creates dataframe with journal usage in a tidy format.
 Tidy_JR1_data <-unique(rbind(load_CSV_JR1(JR1folder),load_excel_JR1(JR1folder)))
 
+###############################################################################
 # Summarize and Transform Usage Data___________________________________________
+###############################################################################
 # See what publishers we have in the dataset.
 unique(c(Tidy_DB1_data$Publisher))
 #See what platforms we have in the dataset.
@@ -171,11 +175,11 @@ JRSummary2 <- Tidy_JR1_data %>%
 
 
 
-#############################
-## IMPORT PRICING INFORMATION
-#############################
+###############################################################################
+# Import Pricing Information___________________________________________________
+###############################################################################
 
-## This creates a blank template to help with the import of pricing data.
+# This creates a blank template to help with the import of pricing data.
 DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   distinct(Database, Publisher,Platform, Year) %>%
@@ -183,33 +187,33 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
   spread(Year,Price) %>%
   write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
 
-## Imports the pricing information file.
+# Imports the pricing information file.
 Raw_Database_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
-## Creating some variables to describe the size and shape of the pricing data.
-## This sets the number of descriptive columns at 7 (the rest are years)
-DB_Pricing_Description <- 7
-DB_Pricing_Years <- ncol(Raw_Database_Pricing)-DB_Pricing_Description
+# Creates a variable to describe the pricing data information. 
+# This sets the number of descriptive columns at 7 (the rest are years)
+DB_Pricing_Desc <- 7
 
-## Creates tidy dataframe of just database pricing.
-## Keeps only the notes and fund information.
+# Creates a tidy dataframe of just database pricing.
+# Keeps only the notes and fund information.
 Tidy_DB_Pricing <- Raw_Database_Pricing %>%
-  gather(Fiscal_Year, Cost, (DB_Pricing_Description +1):(ncol(Raw_Database_Pricing))) %>%
+  gather(Fiscal_Year, Cost, (DB_Pricing_Desc +1):(ncol(Raw_Database_Pricing))) %>%
   mutate(Cost = as.numeric(Cost)) %>%
   subset(select = -c(6:7))
 
-#################################
-## Look at pricing information.
-#################################
-## Create a simple table of pricing information; excludes databases without pricing.
+###############################################################################
+# Look at Pricing Information_________________________________________________
+###############################################################################
+
+# Create a simple table of pricing information.
+# Excludes databases without pricing.
 Cost1 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost))%>%
   filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
   spread(Fiscal_Year,Cost) %>%
-  plyr::rename(.,c("2014"="FY_2014", "2015"="FY_2015","2016"="FY_2016","2017"="FY_2017")) %>%
   write_csv(paste(output, "cost1.csv",sep="/"))
 
-## Try and look at average price increases per database.
+# Calculates Change in price (raw and percent) over time.
 Cost2 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost)) %>%
   filter(Fiscal_Year < 2018) %>%
@@ -220,7 +224,7 @@ Cost2 <- Tidy_DB_Pricing %>%
   mutate(Change_In_Price_Percent = (Cost-Cost_Last_FY)/Cost_Last_FY) %>%
   mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep=""))
 
-## Creates a table that just shows price increases. 
+# Creates a table that just shows price changes in percents.
 Cost3 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost)) %>%
   filter(Fiscal_Year < 2018) %>%
@@ -233,8 +237,8 @@ Cost3 <- Tidy_DB_Pricing %>%
   subset(select= -c(4:5)) %>%
   spread(Fiscal_Year,Change_In_Price_Percent)
   
-## A table for one database.
-Cost4_1 <- Tidy_DB_Pricing %>%
+# Create a report for one database that shows cost and changes.
+Cost4 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost)) %>%
   filter(Fiscal_Year < 2018) %>%
   filter(Database=="Business Source Complete") %>%
@@ -243,28 +247,9 @@ Cost4_1 <- Tidy_DB_Pricing %>%
   mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
   mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
   filter(Fiscal_Year > 2013) %>%
-  subset(select = -c(2:4)) %>%
-  gather(Value, Measure, -Database, -Fund, -Fiscal_Year) %>%
-  arrange(Database, Fiscal_Year) %>%
-  spread(Fiscal_Year, Measure)
+  subset(select = -c(2:5))
 
-## A table that is not spread. Works for embedding a single database report.
-Cost4_1 <- Tidy_DB_Pricing %>%
-  filter(!is.na(Cost)) %>%
-  filter(Fiscal_Year < 2018) %>%
-  filter(Database=="Business Source Complete") %>%
-  arrange(Database, Fiscal_Year) %>%
-  group_by(Database) %>%
-  mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
-  mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
-  filter(Fiscal_Year > 2013) %>%
-  subset(select = -c(1:5))
-
-
-
-
-
-## Here is a simple graph of pricing for a given database.
+# Creates a simple bar chart for individual database costs over time.
 CostGraph1 <- Tidy_DB_Pricing %>%
   filter(Database=="Business Source Complete") %>%
   filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
@@ -287,11 +272,12 @@ CostGraph2 <- Tidy_DB_Pricing %>%
   facet_grid(Fund ~ .)
 CostGraph2
 
-##########################
-## Calculating cost per use
-##########################
+###############################################################################
+# Calculating Cost Per Use ____________________________________________________
+###############################################################################
 
-##Starting points. Let's filter for just one database.
+# Starting points: the two "tidy" dataframes (Use and Pricing)
+# Summarizes use on the fiscal year.
 CPU1_Use <- Tidy_DB1_data %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
@@ -300,14 +286,13 @@ CPU1_Use <- Tidy_DB1_data %>%
 
 CPU1_Cost <- Tidy_DB_Pricing %>%
   subset(select = -c(4:5))
-## This merges on the Fiscal Year. Fine for most databases
-## Might be worth doing it differently for databases on the calendar year cycle.
+
+# Merge Use and Cost dataframes by Database, Publisher, Platform, and Fiscal Year.
 CPU_Combined <- merge(CPU1_Use, CPU1_Cost, by=c("Database","Publisher","Platform","Fiscal_Year"))
 
-## This match function works too. But I think merge is better.
-#CPU_Combined$Price <- CPU1_Cost$Cost[match(CPU_Combined$Fiscal_Year, CPU1_Cost$Fiscal_Year)]
-
+# Adds new column that calculates cost per user action.
 CPU_Combined$Cost_Per_User_Action <- CPU_Combined$Cost/CPU_Combined$Total_Usage
+# Writes to CSV file.
 write_csv(CPU_Combined, paste(output, "Cost_Per_Use.csv",sep="/"))
 
 
@@ -317,44 +302,19 @@ CPU_Database <- CPU_Combined %>%
   spread(User_Activity,Cost_Per_User_Action) %>%
   subset(select=-c(1:3))
 
+###############################################################################
+# Graphing Usage_______________________________________________________________
+###############################################################################
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#############################
-## GRAPHING USAGE
-
-## Filter by database
+# Graphs usage by individual database
 Graph1 <- Tidy_DB1_data %>%
   filter(Database=="Business Source Complete") %>%
-  filter(Year>2014) %>%
   ggplot() +
   geom_line(mapping = aes(x=Date, y=Usage, color=User_Activity)) +
   scale_x_yearmon()
 Graph1
 
-## Filter by database and User Activity
+# Graphs usage by individual database and user activity
 Graph2 <- Tidy_DB1_data %>%
   filter(User_Activity=="Record Views") %>%
   filter(Database=="Nursing Reference Center") %>%
@@ -364,7 +324,7 @@ Graph2 <- Tidy_DB1_data %>%
   scale_x_yearmon()
 Graph2
 
-## Filter by database. facet by user activity
+# Graphs usage by individual database; facet by user activity
 Graph2_1 <- Tidy_DB1_data %>%
   filter(Database=="Business Source Complete") %>%
   ggplot(aes(Date, Usage)) +
@@ -374,7 +334,7 @@ Graph2_1 <- Tidy_DB1_data %>%
   facet_grid(User_Activity ~ .)
 Graph2_1
 
-## Filter by database. facet by user activity, scales free.
+# Graphs usage by individual database; facet by user activity, scales free.
 Graph2_2 <- Tidy_DB1_data %>%
   filter(Database=="Business Source Complete") %>%
   ggplot(aes(Date, Usage)) +
@@ -384,7 +344,7 @@ Graph2_2 <- Tidy_DB1_data %>%
   facet_grid(User_Activity ~ ., scales = "free")
 Graph2_2
 
-## Filtered by Database and Summed by Year.
+# Graphs usage by individual database, summarized by calendar year.
 Graph3 <- Tidy_DB1_data %>%
   filter(Database=="Business Source Complete") %>%
   mutate(Year=year(Date)) %>%
@@ -394,7 +354,7 @@ Graph3 <- Tidy_DB1_data %>%
   geom_line(mapping = aes(x=Year, y=Usage, color=User_Activity))
 Graph3
 
-## Filtered by database and year and then summarized by academic term.
+# Graphs usage by individual database, summarized by academic term.
 Graph4 <- Tidy_DB1_data %>%
   filter(Database=="Business Source Complete") %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
@@ -412,7 +372,8 @@ Graph4 <- Tidy_DB1_data %>%
   geom_line(aes(color=User_Activity, group=User_Activity))
 Graph4
 
-## Same as Graph4 but User_Activity is faceted.
+# Graphs usage by individual database, summarized by academic term.
+# User_Activity is faceted.
 Graph5 <- Tidy_DB1_data %>%
   filter(Database=="Nursing Reference Center") %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
@@ -434,6 +395,7 @@ Graph5
 ## Bar Graph grouped by seasons and then year.
 Graph6 <- Tidy_DB1_data %>%
   filter(Database=="Business Source Complete") %>%
+  filter(User_Activity=="Record Views") %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   filter(Year>2013) %>%
   mutate(Academic_Term = derivedFactor(
@@ -450,19 +412,3 @@ Graph6 <- Tidy_DB1_data %>%
   facet_grid(User_Activity ~.)
 Graph6
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## End Graphing Section
