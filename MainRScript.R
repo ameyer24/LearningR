@@ -234,7 +234,6 @@ Cost3 <- Tidy_DB_Pricing %>%
   spread(Fiscal_Year,Change_In_Price_Percent)
   
 ## A table for one database.
-
 Cost4_1 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost)) %>%
   filter(Fiscal_Year < 2018) %>%
