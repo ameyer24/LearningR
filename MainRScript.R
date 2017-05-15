@@ -189,7 +189,7 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
   write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
 
 # Imports the pricing information file.
-Raw_Database_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"), col_names = TRUE)
+Raw_DB_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"), col_names = TRUE)
 
 # Creates a variable to describe the pricing data information. 
 # This sets the number of descriptive columns at 7 (the rest are years)
@@ -198,8 +198,8 @@ DB_Pricing_Desc <- 7
 # Creates a tidy dataframe of just database pricing.
 # Keeps only the notes and fund information.
 # Excludes databases without pricing.
-Tidy_DB_Pricing <- Raw_Database_Pricing %>%
-  gather(Fiscal_Year, Cost, (DB_Pricing_Desc +1):(ncol(Raw_Database_Pricing))) %>%
+Tidy_DB_Pricing <- Raw_DB_Pricing %>%
+  gather(Fiscal_Year, Cost, (DB_Pricing_Desc +1):(ncol(Raw_DB_Pricing))) %>%
   filter(!is.na(Cost)) %>%
   subset(select = -c(6:7))
   
@@ -223,32 +223,29 @@ Cost2 <- Tidy_DB_Pricing %>%
   mutate(Cost_Last_FY=lag(Cost)) %>%
   mutate(Change_In_Price = Cost-Cost_Last_FY) %>%
   mutate(Change_In_Price_Percent = (Cost-Cost_Last_FY)/Cost_Last_FY) %>%
-  mutate(Change_In_Price_Percent= percent_format()(Change_In_Price_Percent))
-
+  mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep=""))
 
 # Creates a table that just shows price changes in percents.
 Cost3 <- Tidy_DB_Pricing %>%
   filter(Fiscal_Year < 2018) %>%
   arrange(Database, Fiscal_Year) %>%
   group_by(Database) %>%
-  mutate(Change_In_Price = Cost-lag(Cost)) %>%
-  mutate(Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
-  mutate(Change_In_Price_Percent= percent_format()(Change_In_Price_Percent)) %>%
+  mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
+  mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
   filter(Fiscal_Year > 2013) %>%
   subset(select = -c(2:4)) %>%
   subset(select= -c(4:5)) %>%
   spread(Fiscal_Year,Change_In_Price_Percent)
   
-# Create a report that shows cost and changes.
+# Create a report for one database that shows cost and changes.
 Cost4 <- Tidy_DB_Pricing %>%
   filter(Fiscal_Year < 2018) %>%
   arrange(Database, Fiscal_Year) %>%
   group_by(Database) %>%
   mutate(Change_In_Price = Cost-lag(Cost)) %>%
   mutate(Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
-  mutate(Change_In_Price_Percent= percent_format()(Change_In_Price_Percent)) %>%
   filter(Fiscal_Year > 2013) %>%
-  subset(select = -c(2:5))
+  subset(select = -c(2:5)) 
 
 # Creates a simple bar chart for individual database costs over time.
 CostGraph1 <- Tidy_DB_Pricing %>%
