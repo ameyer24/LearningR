@@ -1,7 +1,10 @@
-## OVERVIEW AND SET UP
+# Overview
+# This script was written to look at electronic resources usage.
+# It looks at electronic resource usage (from Counter reports)
+# It also uses pricing information entered by the user.
 
-
-## INSTALLING AND LOADING PACKAGES.
+###############################################################################
+# Installing and Loading Packages _____________________________________________
 install.packages("tidyverse")
 install.packages("readxl")
 install.packages("xlsx")
@@ -14,14 +17,16 @@ library(readxl)
 library(zoo)
 library(lubridate)
 
-## READING THE FILES AND TIDYING THE DATA
-## Setting up the folder pathway.
+###############################################################################
+# Reading the files and tidying the data ______________________________________
+
+# Setting up the folders
 input <- "C:/DataScience/inputs"
 output <- "C:/DataScience/outputs"
 DB1folder <- "C:/DataScience/inputs/DB1Reports"
 JR1folder <- "C:/DataScience/inputs/JR1Reports"
-##Defining functions to load the data from DB1 Reports.
 
+# Defining functions to load the data from DB1 Reports.
 load_CSV_DB1 <- function(path) { 
   csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
   tables <- lapply(csv_files, function(file){
@@ -49,11 +54,11 @@ load_excel_DB1 <- function(path) {
   })
   do.call(rbind, tables)
 }
-## Loading DB1 data.
+# Creates dataframe with Database usage in a tidy format.
 Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
 
 
-## Defining Functions to Load JR1 Data.
+# Defining Functions to Load JR1 Data.
 load_CSV_JR1 <- function(path) { 
   csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
   tables <- lapply(csv_files, function(file){
@@ -82,69 +87,25 @@ load_excel_JR1 <- function(path) {
   do.call(rbind, tables)
 }
 
-## Loading JR1 data.
+# Creates dataframe with journal usage in a tidy format.
 Tidy_JR1_data <-unique(rbind(load_CSV_JR1(JR1folder),load_excel_JR1(JR1folder)))
-## Exporting JR1 data
-write_csv(Tidy_JR1_data, paste(output, "Tidy_JR1_data.csv",sep="/"))
 
-
-
-
-
-
-
-
-
-#################################################
-##TRANSFORM AND VISUALIZE AND MODEL THE DATA.
-
-##General Overview
-
-## See what publishers we have in the dataset.
+# Summarize and Transform Usage Data___________________________________________
+# See what publishers we have in the dataset.
 unique(c(Tidy_DB1_data$Publisher))
-
-## See what platforms we have in the dataset.
+#See what platforms we have in the dataset.
 unique(c(Tidy_DB1_data$Platform))
-unique(c(Tidy_JR1_data$Platform))
-## See what databases we have in the dataset.
+# See what databases we have in the dataset.
 unique(c(Tidy_DB1_data$Database))
 
-## Mutate data to include additional date grouping options.
-## Not sure if this will be helpful. But it might be!
-## This data is still "tidy" but with additional date information added.
-Mutated1 <- Tidy_DB1_data %>%
-  mutate(Year = year(Date)) %>%
-  mutate(Month = month(Date)) %>%
-  mutate(Fiscal_Quarter = derivedFactor(
-    "Q1" = (Month==1 | Month==2 | Month==3),
-    "Q2" = (Month==4 | Month==5 | Month==6),
-    "Q3" = (Month==7 | Month==8 | Month==9),
-    "Q4" = (Month==10 | Month==11 | Month==12),
-    .default = "Unknown"
-  )) %>%
-  mutate(Academic_Term = derivedFactor(
-    "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
-    "S2 (Summer)" = (Month==5 | Month==6 | Month==7 | Month==8),
-    "S3 (Fall)" = (Month==9 | Month==10 | Month==11 | Month==12),
-    .default = "Unknown"
-  )) %>%
-  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year))
-
-  
-
-
-
-
-
-
-## This "spreads" the data into a more counter like report.
+# Summarize database usage data by spreading into a "Counter" like report.
 DBSummary1 <- Tidy_DB1_data %>%
-  filter(Date >= 2013) %>% # Update this filter to create customized date ranges.
+  filter(Date >= 2013) %>% # Update this filter to customize date ranges.
   spread(Date, Usage, convert=TRUE) %>%
   arrange(Database,Platform) %>%
   write_csv(paste(output, "DBSummary1.csv",sep="/"))
 
-## Summarize Usage on the Calendar Year
+# Summarize database usage data by  the Calendar Year
 DBSummary2 <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   group_by(Database, Publisher, User_Activity, Year) %>%
@@ -152,7 +113,7 @@ DBSummary2 <- Tidy_DB1_data %>%
   spread(Year, Total_Usage) %>%
   write_csv(paste(output, "DBSummary2.csv",sep="/"))
 
-## Summarize Usage on the Academic Year
+# Summarize database usage data by the Academic Year
 DBSummary3 <- Tidy_DB1_data %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   mutate(Academic_Term = derivedFactor(
@@ -167,8 +128,7 @@ DBSummary3 <- Tidy_DB1_data %>%
   spread(Acad_Year, Total_Usage) %>%
   write_csv(paste(output, "DBSummary3.csv",sep="/"))
 
-
-## Summarize on the Fiscal Year
+# Summarize database usage data by the Fiscal Year
 DBSummary4 <- Tidy_DB1_data %>%
   filter(Database =="Business Source Complete") %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
@@ -179,26 +139,27 @@ DBSummary4 <- Tidy_DB1_data %>%
   spread(Fiscal_Year, Total_Usage) %>%
   write_csv(paste(output, "DBSummary4.csv",sep="/"))
 
+# Summarize database usage data by the Fiscal Year
+# Does not spread the data by year.
 DBSummary4_1 <- Tidy_DB1_data %>%
   filter(Database =="Business Source Complete") %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
   group_by(User_Activity, Fiscal_Year) %>%
   summarize(Total_Usage= sum(Usage)) %>%
-  spread(User_Activity, Total_Usage)
+  spread(User_Activity, Total_Usage) %>%
   write_csv(paste(output, "DBSummary4_1.csv",sep="/"))
 
-## Write Tidy_JR1 to excel.
-write_csv(Tidy_JR1_data, paste(output, "TidyJR1.csv",sep="/"))
 
-## Spreads the tidy data into longer form.
+
+# Summarize journal usage data by spreading into a "Counter" like report.
 JRSummary1 <- Tidy_JR1_data %>%
   filter(Date >= 2012) %>% # Update this filter to create customized date ranges.
   spread(Date, Usage, convert=TRUE) %>%
   arrange(Journal,Platform) %>%
   write_csv(paste(output, "JRSummary1.csv",sep="/"))
 
-## Summarize data by platform and calendar year.
+# Summarize journal usage data by grouping by platform and year.
 JRSummary2 <- Tidy_JR1_data %>%
   filter(Date >= 2014) %>%
   mutate(Year = year(Date)) %>%
