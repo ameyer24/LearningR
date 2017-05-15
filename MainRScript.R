@@ -17,6 +17,7 @@ library(tidyverse)
 library(readxl)
 library(zoo)
 library(lubridate)
+library(scales)
 
 ###############################################################################
 # Reading the files and tidying the data ______________________________________
@@ -196,55 +197,56 @@ DB_Pricing_Desc <- 7
 
 # Creates a tidy dataframe of just database pricing.
 # Keeps only the notes and fund information.
+# Excludes databases without pricing.
 Tidy_DB_Pricing <- Raw_Database_Pricing %>%
   gather(Fiscal_Year, Cost, (DB_Pricing_Desc +1):(ncol(Raw_Database_Pricing))) %>%
-  mutate(Cost = as.numeric(Cost)) %>%
+  filter(!is.na(Cost)) %>%
   subset(select = -c(6:7))
+  
 
 ###############################################################################
 # Look at Pricing Information_________________________________________________
 ###############################################################################
 
 # Create a simple table of pricing information.
-# Excludes databases without pricing.
 Cost1 <- Tidy_DB_Pricing %>%
-  filter(!is.na(Cost))%>%
   filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
-  spread(Fiscal_Year,Cost) %>%
+  mutate(Cost = dollar_format()(Cost)) %>%
+  spread(Fiscal_Year, Cost) %>%
   write_csv(paste(output, "cost1.csv",sep="/"))
 
 # Calculates Change in price (raw and percent) over time.
 Cost2 <- Tidy_DB_Pricing %>%
-  filter(!is.na(Cost)) %>%
   filter(Fiscal_Year < 2018) %>%
   arrange(Database, Fiscal_Year) %>%
   group_by(Database) %>%
   mutate(Cost_Last_FY=lag(Cost)) %>%
   mutate(Change_In_Price = Cost-Cost_Last_FY) %>%
   mutate(Change_In_Price_Percent = (Cost-Cost_Last_FY)/Cost_Last_FY) %>%
-  mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep=""))
+  mutate(Change_In_Price_Percent= percent_format()(Change_In_Price_Percent))
+
 
 # Creates a table that just shows price changes in percents.
 Cost3 <- Tidy_DB_Pricing %>%
-  filter(!is.na(Cost)) %>%
   filter(Fiscal_Year < 2018) %>%
   arrange(Database, Fiscal_Year) %>%
   group_by(Database) %>%
-  mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
-  mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
+  mutate(Change_In_Price = Cost-lag(Cost)) %>%
+  mutate(Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
+  mutate(Change_In_Price_Percent= percent_format()(Change_In_Price_Percent)) %>%
   filter(Fiscal_Year > 2013) %>%
   subset(select = -c(2:4)) %>%
   subset(select= -c(4:5)) %>%
   spread(Fiscal_Year,Change_In_Price_Percent)
   
-# Create a report for one database that shows cost and changes.
+# Create a report that shows cost and changes.
 Cost4 <- Tidy_DB_Pricing %>%
-  filter(!is.na(Cost)) %>%
   filter(Fiscal_Year < 2018) %>%
   arrange(Database, Fiscal_Year) %>%
   group_by(Database) %>%
-  mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
-  mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
+  mutate(Change_In_Price = Cost-lag(Cost)) %>%
+  mutate(Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
+  mutate(Change_In_Price_Percent= percent_format()(Change_In_Price_Percent)) %>%
   filter(Fiscal_Year > 2013) %>%
   subset(select = -c(2:5))
 
@@ -252,11 +254,12 @@ Cost4 <- Tidy_DB_Pricing %>%
 CostGraph1 <- Tidy_DB_Pricing %>%
   filter(Database=="Business Source Complete") %>%
   filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
+  mutate(Cost = dollar_format()(Cost)) %>%
   ggplot(aes(x=Fiscal_Year,y=Cost, label=Cost)) +
   geom_bar(stat="identity", fill="darkgreen")
 
 CostGraph1 +
-  ggtitle("Cost of Individual Subscription over Time") +
+  ggtitle("Cost of Subscription over Time") +
   geom_label(aes(label=Cost), vjust=3)
 
 ## Breakdown by Fund and Year
