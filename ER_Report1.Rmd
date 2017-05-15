@@ -3,12 +3,57 @@ title: "Electronic Resource Reports"
 author: "AJM"
 date: "May 10, 2017"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
+## Electronic Resource Report
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(mosaic)
+library(xlsx)
+library(tidyverse)
+library(readxl)
+library(zoo)
+library(lubridate)
+
+## READING THE FILES AND TIDYING THE DATA
+## Setting up the folder pathway.
+input <- "C:/DataScience/inputs"
+output <- "C:/DataScience/outputs"
+DB1folder <- "C:/DataScience/inputs/DB1Reports"
+JR1folder <- "C:/DataScience/inputs/JR1Reports"
+##Defining functions to load the data from DB1 Reports.
+
+load_CSV_DB1 <- function(path) { 
+  csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
+  tables <- lapply(csv_files, function(file){
+    file %>%
+      read_csv(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage)) %>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
+  })
+  do.call(rbind, tables)
+}
+
+load_excel_DB1 <- function(path) { 
+  excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel_files, function(file){
+    file %>%
+      read_excel(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))%>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
+  })
+  do.call(rbind, tables)
+}
+## Loading DB1 data.
+Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
+
 ```
 
 ## R Markdown
@@ -18,7 +63,7 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r cars}
-CPU_Database
+
 ```
 
 ## Including Plots
