@@ -241,7 +241,6 @@ Cost3 <- Tidy_DB_Pricing %>%
 Cost4 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost)) %>%
   filter(Fiscal_Year < 2018) %>%
-  filter(Database=="Business Source Complete") %>%
   arrange(Database, Fiscal_Year) %>%
   group_by(Database) %>%
   mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
@@ -392,7 +391,7 @@ Graph5 <- Tidy_DB1_data %>%
   geom_line(aes(group=User_Activity))
 Graph5
 
-## Bar Graph grouped by seasons and then year.
+## Bar Graph grouped by academic term and then year.
 Graph6 <- Tidy_DB1_data %>%
   filter(Database=="Business Source Complete") %>%
   filter(User_Activity=="Record Views") %>%
@@ -412,3 +411,52 @@ Graph6 <- Tidy_DB1_data %>%
   facet_grid(User_Activity ~.)
 Graph6
 
+## Bar Graph grouped by year and then academic term.
+Graph7 <- Tidy_DB1_data %>%
+  filter(Database=="Nursing Reference Center") %>%
+  filter(User_Activity=="Record Views") %>%
+  mutate(Year = year(Date), Month=month(Date)) %>%
+  filter(Year>2013) %>%
+  mutate(Academic_Term = derivedFactor(
+    "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
+    "S2 (Summer)" = (Month==5 | Month==6 | Month==7 | Month==8),
+    "S3 (Fall)" = (Month==9 | Month==10 | Month==11 | Month==12),
+    .default = "Unknown"
+  )) %>%
+  mutate(Academic_Year = paste(Year, Academic_Term, sep=" ")) %>%
+  group_by(Database, Publisher, Platform, User_Activity, Academic_Term, Year)%>%
+  summarize(Usage=sum(Usage))%>%
+  ggplot(aes(Year, Usage, fill=factor(Academic_Term))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  facet_grid(User_Activity ~.)
+Graph7
+
+###############################################################################
+# A Functional Approach _______________________________________________________
+###############################################################################
+# I'm going to explore writing functions to do some reporting.
+# I'm repeating code I used above. Want to do this independently as possible.
+
+# Cost summary.
+cost.report.1 <- function(DatabaseName){
+  Tidy_DB_Pricing %>%
+    filter(!is.na(Cost)) %>%
+    filter(Fiscal_Year < 2018) %>%
+    filter(Database == DatabaseName) %>%
+    arrange(Database, Fiscal_Year) %>%
+    group_by(Database) %>%
+    mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
+    mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
+    filter(Fiscal_Year > 2013) %>%
+    subset(select = -c(2:5))
+}
+cost.report.1("Business Source Complete")
+# Graphing database pricing.
+cost.graph.1 <- function(DatabaseName){
+  Tidy_DB_Pricing %>%
+    filter(Database==DatabaseName) %>%
+    filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
+    ggplot(aes(x=Fiscal_Year,y=Cost, label=Cost)) +
+    geom_bar(stat="identity", fill="darkgreen")
+}
+cost.graph.1("Business Source Complete")
