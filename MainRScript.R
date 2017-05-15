@@ -29,6 +29,10 @@ output <- "C:/DataScience/outputs"
 DB1folder <- "C:/DataScience/inputs/DB1Reports"
 JR1folder <- "C:/DataScience/inputs/JR1Reports"
 
+###############################################################################
+# Import Database1 Usage Information___________________________________________
+###############################################################################
+
 # Defining functions to load the data from DB1 Reports.
 load_CSV_DB1 <- function(path) { 
   csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
@@ -60,7 +64,9 @@ load_excel_DB1 <- function(path) {
 # Creates dataframe with Database usage in a tidy format.
 Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
 
-
+###############################################################################
+# Import Journal  Usage Information____________________________________________
+###############################################################################
 # Defining Functions to Load JR1 Data.
 load_CSV_JR1 <- function(path) { 
   csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
@@ -92,6 +98,36 @@ load_excel_JR1 <- function(path) {
 
 # Creates dataframe with journal usage in a tidy format.
 Tidy_JR1_data <-unique(rbind(load_CSV_JR1(JR1folder),load_excel_JR1(JR1folder)))
+
+
+###############################################################################
+# Import Pricing Information___________________________________________________
+###############################################################################
+
+# This creates a blank template to help with the import of pricing data.
+DB_Pricing_Blank <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  distinct(Database, Publisher,Platform, Year) %>%
+  mutate(Price ="", Notes="", Fund="", Ordering_Site="", Order_Detail="Fiscal Year") %>%
+  spread(Year,Price) %>%
+  write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
+
+# Imports the pricing information file.
+Raw_DB_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"), col_names = TRUE)
+
+# Creates a variable to describe the pricing data information. 
+# This sets the number of descriptive columns at 7 (the rest are years)
+DB_Pricing_Desc <- 7
+
+# Creates a tidy dataframe of just database pricing.
+# Keeps only the notes and fund information.
+# Excludes databases without pricing.
+Tidy_DB_Pricing <- Raw_DB_Pricing %>%
+  gather(Fiscal_Year, Cost, (DB_Pricing_Desc +1):(ncol(Raw_DB_Pricing))) %>%
+  filter(!is.na(Cost)) %>%
+  subset(select = -c(6:7))
+
+
 
 ###############################################################################
 # Summarize and Transform Usage Data___________________________________________
@@ -135,7 +171,6 @@ DBSummary3 <- Tidy_DB1_data %>%
 
 # Summarize database usage data by the Fiscal Year
 DBSummary4 <- Tidy_DB1_data %>%
-  filter(Database =="Business Source Complete") %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
   mutate(Fiscal_Year = paste("FY", Fiscal_Year, sep=" ")) %>%
@@ -176,36 +211,9 @@ JRSummary2 <- Tidy_JR1_data %>%
 
 
 
-###############################################################################
-# Import Pricing Information___________________________________________________
-###############################################################################
-
-# This creates a blank template to help with the import of pricing data.
-DB_Pricing_Blank <- Tidy_DB1_data %>%
-  mutate(Year = year(Date)) %>%
-  distinct(Database, Publisher,Platform, Year) %>%
-  mutate(Price ="", Notes="", Fund="", Ordering_Site="", Order_Detail="Fiscal Year") %>%
-  spread(Year,Price) %>%
-  write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
-
-# Imports the pricing information file.
-Raw_DB_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"), col_names = TRUE)
-
-# Creates a variable to describe the pricing data information. 
-# This sets the number of descriptive columns at 7 (the rest are years)
-DB_Pricing_Desc <- 7
-
-# Creates a tidy dataframe of just database pricing.
-# Keeps only the notes and fund information.
-# Excludes databases without pricing.
-Tidy_DB_Pricing <- Raw_DB_Pricing %>%
-  gather(Fiscal_Year, Cost, (DB_Pricing_Desc +1):(ncol(Raw_DB_Pricing))) %>%
-  filter(!is.na(Cost)) %>%
-  subset(select = -c(6:7))
-  
 
 ###############################################################################
-# Look at Pricing Information_________________________________________________
+# Summarize and Transform  Pricing Information_________________________________
 ###############################################################################
 
 # Create a simple table of pricing information.
@@ -272,6 +280,7 @@ CostGraph2 <- Tidy_DB_Pricing %>%
 CostGraph2
 
 ###############################################################################
+# Combine Usage and Cost! _____________________________________________________
 # Calculating Cost Per Use ____________________________________________________
 ###############################################################################
 
@@ -295,11 +304,11 @@ CPU_Combined$Cost_Per_User_Action <- CPU_Combined$Cost/CPU_Combined$Total_Usage
 write_csv(CPU_Combined, paste(output, "Cost_Per_Use.csv",sep="/"))
 
 
-CPU_Database <- CPU_Combined %>%
-  filter(Database=="Business Source Complete")%>%
+Cost_Per_Use1 <- CPU_Combined %>%
   subset(select=-c(6:7)) %>%
+  filter(Fiscal_Year > 2015) %>%
   spread(User_Activity,Cost_Per_User_Action) %>%
-  subset(select=-c(1:3))
+  write_csv(paste(output, "Cost_Per_Use1.csv",sep="/"))
 
 ###############################################################################
 # Graphing Usage_______________________________________________________________
@@ -440,17 +449,19 @@ Graph7
 # Cost summary.
 cost.report.1 <- function(DatabaseName){
   Tidy_DB_Pricing %>%
-    filter(!is.na(Cost)) %>%
     filter(Fiscal_Year < 2018) %>%
     filter(Database == DatabaseName) %>%
-    arrange(Database, Fiscal_Year) %>%
+    arrange(Fiscal_Year) %>%
     group_by(Database) %>%
-    mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
+    mutate(Change_In_Price = Cost-lag(Cost)) %>%
+    mutate(Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
     mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
     filter(Fiscal_Year > 2013) %>%
-    subset(select = -c(2:5))
+    subset(select = -c(2:5)) %>%
+    write_csv(paste(output, "cost.report.1.csv",sep="/"))
 }
 cost.report.1("Business Source Complete")
+
 # Graphing database pricing.
 cost.graph.1 <- function(DatabaseName){
   Tidy_DB_Pricing %>%
@@ -460,3 +471,25 @@ cost.graph.1 <- function(DatabaseName){
     geom_bar(stat="identity", fill="darkgreen")
 }
 cost.graph.1("Business Source Complete")
+
+# Graphing database usage.
+usage.graph.1 <- function(DatabaseName) {
+  Tidy_DB1_data %>%
+    filter(Database==DatabaseName) %>%
+    ggplot(aes(Date, Usage)) +
+    geom_line() +
+    geom_smooth(span=0.7) +
+    scale_x_yearmon() +
+    facet_grid(User_Activity ~ ., scales = "free")
+}
+usage.graph.1("Business Source Complete")
+
+# Reporting Cost per Use
+cost.per.use.report.1 <- function(DatabaseName){
+  CPU_Combined %>%
+    filter(Database==DatabaseName) %>%
+    subset(select=-c(6:7)) %>%
+    spread(User_Activity, Cost_Per_User_Action) %>%
+    subset(select=-c(1:3))
+}
+cost.per.use.report.1("Business Source Complete")

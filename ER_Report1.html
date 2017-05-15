@@ -124,13 +124,33 @@ $(document).ready(function () {
 </div>
 
 
-<div id="electronic-resource-report" class="section level2">
-<h2>Electronic Resource Report</h2>
-</div>
-<div id="r-markdown" class="section level2">
-<h2>R Markdown</h2>
+<div id="pricing" class="section level2">
+<h2>Pricing</h2>
 <p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
 <p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
+<pre class="r"><code>cost.report.1 &lt;- function(DatabaseName){
+  Tidy_DB_Pricing %&gt;%
+    filter(Fiscal_Year &lt; 2018) %&gt;%
+    filter(Database == DatabaseName) %&gt;%
+    arrange(Fiscal_Year) %&gt;%
+    group_by(Database) %&gt;%
+    mutate(Change_In_Price = Cost-lag(Cost)) %&gt;%
+    mutate(Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %&gt;%
+    mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),&quot;%&quot;,sep=&quot;&quot;)) %&gt;%
+    filter(Fiscal_Year &gt; 2013) %&gt;%
+    subset(select = -c(2:5))
+}
+cost.report.1(&quot;Business Source Complete&quot;)</code></pre>
+<pre><code>## Source: local data frame [4 x 5]
+## Groups: Database [1]
+## 
+##                   Database Fiscal_Year     Cost Change_In_Price
+##                      &lt;chr&gt;       &lt;chr&gt;    &lt;dbl&gt;           &lt;dbl&gt;
+## 1 Business Source Complete        2014 14468.00        14468.00
+## 2 Business Source Complete        2015 15046.72          578.72
+## 3 Business Source Complete        2016 15648.59          601.87
+## 4 Business Source Complete        2017 16274.53          625.94
+## # ... with 1 more variables: Change_In_Price_Percent &lt;chr&gt;</code></pre>
 </div>
 <div id="including-plots" class="section level2">
 <h2>Including Plots</h2>
