@@ -167,11 +167,6 @@ DBSummary3 <- Tidy_DB1_data %>%
   spread(Acad_Year, Total_Usage) %>%
   write_csv(paste(output, "DBSummary3.csv",sep="/"))
 
-DB_Academic_Year <- function(DB){
-  filter(DBSummary3, Database == DB)
-}
-
-Test <- DB_Academic_Year("CINAHL")
 
 ## Summarize on the Fiscal Year
 DBSummary4 <- Tidy_DB1_data %>%
@@ -254,7 +249,8 @@ Cost2 <- Tidy_DB_Pricing %>%
   mutate(Change_In_Price = Cost-Cost_Last_FY) %>%
   mutate(Change_In_Price_Percent = (Cost-Cost_Last_FY)/Cost_Last_FY) %>%
   mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep=""))
- 
+
+## Creates a table that just shows price increases. 
 Cost3 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost)) %>%
   filter(Fiscal_Year < 2018) %>%
@@ -267,9 +263,9 @@ Cost3 <- Tidy_DB_Pricing %>%
   subset(select= -c(4:5)) %>%
   spread(Fiscal_Year,Change_In_Price_Percent)
   
-## Handle the NaN values better. Maybe with conditional logic.
+## A table for one database.
 
-Cost4 <- Tidy_DB_Pricing %>%
+Cost4_1 <- Tidy_DB_Pricing %>%
   filter(!is.na(Cost)) %>%
   filter(Fiscal_Year < 2018) %>%
   filter(Database=="Business Source Complete") %>%
@@ -283,7 +279,17 @@ Cost4 <- Tidy_DB_Pricing %>%
   arrange(Database, Fiscal_Year) %>%
   spread(Fiscal_Year, Measure)
 
-
+## A table that is not spread. Works for embedding a single database report.
+Cost4_1 <- Tidy_DB_Pricing %>%
+  filter(!is.na(Cost)) %>%
+  filter(Fiscal_Year < 2018) %>%
+  filter(Database=="Business Source Complete") %>%
+  arrange(Database, Fiscal_Year) %>%
+  group_by(Database) %>%
+  mutate(Change_In_Price = Cost-lag(Cost), Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
+  mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
+  filter(Fiscal_Year > 2013) %>%
+  subset(select = -c(1:5))
 
 
 
@@ -312,11 +318,26 @@ CostGraph2 <- Tidy_DB_Pricing %>%
   facet_grid(Fund ~ .)
 CostGraph2
 
+########################
+## Calculating cost per use
+##########################
 
+##Starting points. Let's filter for just one database.
 
+CPU1_Use <- Tidy_DB1_data %>%
+  filter(Database =="Business Source Complete") %>%
+  mutate(Year = year(Date), Month=month(Date)) %>%
+  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
+  group_by(Database, Publisher,Platform, User_Activity, Fiscal_Year) %>%
+  summarize(Total_Usage= sum(Usage))
 
+CPU1_Cost <- Tidy_DB_Pricing %>%
+  filter(Database=="Business Source Complete") %>%
+  subset(select = -c(4:5)) %>%
+  mutate(User_Activity = "Cost")
 
-
+CPU_Combined <- CPU1_Use
+CPU_Combined$Price <- CPU1_Cost$Cost[match(CPU_Combined$Fiscal_Year, CPU1_Cost$Fiscal_Year)]
 
 
 
