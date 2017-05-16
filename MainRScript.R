@@ -11,6 +11,7 @@ install.packages("readxl")
 install.packages("xlsx")
 install.packages("zoo")
 install.packages("mosaic")
+install.packages("scales")
 library(mosaic)
 library(xlsx)
 library(tidyverse)
@@ -141,7 +142,7 @@ unique(c(Tidy_DB1_data$Database))
 
 # Summarize database usage data by spreading into a "Counter" like report.
 DBSummary1 <- Tidy_DB1_data %>%
-  filter(Date >= 2013) %>% # Update this filter to customize date ranges.
+  filter(Date >= 2014) %>% # Update this filter to customize date ranges.
   spread(Date, Usage, convert=TRUE) %>%
   arrange(Database,Platform) %>%
   write_csv(paste(output, "DBSummary1.csv",sep="/"))
@@ -484,12 +485,48 @@ usage.graph.1 <- function(DatabaseName) {
 }
 usage.graph.1("Business Source Complete")
 
+# Graphing database usage.
+usage.graph.2 <- function(DatabaseName) {
+  Tidy_DB1_data %>%
+    filter(Database == DatabaseName) %>%
+    filter(User_Activity != "Searches-federated and automated") %>%
+    ggplot(aes(Date, Usage)) +
+    geom_line() +
+    geom_smooth(span=0.7) +
+    scale_x_yearmon() +
+    facet_grid(User_Activity ~ .)
+}
+usage.graph.2("Business Source Complete")
+
+# Graphing database usage.
+usage.graph.3 <- function(DatabaseName) {
+  Tidy_DB1_data %>%
+    filter(Database == DatabaseName) %>%
+    filter(User_Activity != "Searches-federated and automated") %>%
+    mutate(Year = year(Date), Month=month(Date)) %>%
+    filter(Year>2014) %>%
+    mutate(Academic_Term = derivedFactor(
+      "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
+      "S2 (Summer)" = (Month==5 | Month==6 | Month==7 | Month==8),
+      "S3 (Fall)" = (Month==9 | Month==10 | Month==11 | Month==12),
+      .default = "Unknown"
+    )) %>%
+    mutate(Academic_Year = paste(Year, Academic_Term, sep=" "))%>%
+    group_by(Database, Publisher, Platform, User_Activity, Academic_Year) %>%
+    summarize(Usage=sum(Usage)) %>%
+    ggplot(aes(Academic_Year,Usage)) +
+    facet_grid(User_Activity ~ .) + 
+    geom_line(aes(group=User_Activity))
+}
+usage.graph.3("Business Source Complete")
+
 # Reporting Cost per Use
 cost.per.use.report.1 <- function(DatabaseName){
   CPU_Combined %>%
     filter(Database==DatabaseName) %>%
     subset(select=-c(6:7)) %>%
     spread(User_Activity, Cost_Per_User_Action) %>%
-    subset(select=-c(1:3))
+    subset(select=-c(1:3)) %>%
+    write_csv(paste(output, "cost.per.use.report.1.csv",sep="/"))
 }
 cost.per.use.report.1("Business Source Complete")
