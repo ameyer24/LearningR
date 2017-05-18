@@ -67,6 +67,16 @@ Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
 
 # Find the NA dates - these are problems to fix (somehow)
 Missing.dates <- subset(Tidy_DB1_data, is.na(Tidy_DB1_data$Date))
+
+# See what information we have for what databases.
+date.summary <- Tidy_DB1_data %>%
+  group_by(Platform, Date) %>%
+  summarise(Total_Usage = sum(Usage)) %>%
+  spread(Date,Total_Usage)
+
+
+
+
 ###############################################################################
 # Import Journal  Usage Information____________________________________________
 ###############################################################################
@@ -144,7 +154,7 @@ unique(c(Tidy_DB1_data$Database))
 
 # Summarize database usage data by spreading into a "Counter" like report.
 DBSummary1 <- Tidy_DB1_data %>%
-  filter(Date >= 2014) %>% # Update this filter to customize date ranges.
+  filter(Date >= 2010) %>% # Update this filter to customize date ranges.
   spread(Date, Usage, convert=TRUE) %>%
   arrange(Database,Platform) %>%
   write_csv(paste(output, "DBSummary1.csv",sep="/"))

@@ -1,0 +1,203 @@
+---
+title: "Electronic Resource Reports"
+author: "AJM"
+date: "May 10, 2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+# Overview
+# This script was written to look at electronic resources usage.
+# It looks at electronic resource usage (from Counter reports)
+# It also uses pricing information entered by the user.
+
+###############################################################################
+# Installing and Loading Packages _____________________________________________
+###############################################################################
+# install.packages("tidyverse")
+# install.packages("readxl")
+# install.packages("xlsx")
+# install.packages("zoo")
+# install.packages("mosaic")
+library(mosaic)
+library(xlsx)
+library(tidyverse)
+library(readxl)
+library(zoo)
+library(lubridate)
+library(scales)
+
+###############################################################################
+# Reading the files and tidying the data ______________________________________
+###############################################################################
+
+# Setting up the folders
+input <- "C:/DataScience/inputs"
+output <- "C:/DataScience/outputs"
+DB1folder <- "C:/DataScience/inputs/DB1Reports"
+JR1folder <- "C:/DataScience/inputs/JR1Reports"
+
+###############################################################################
+# Import Database1 Usage Information___________________________________________
+###############################################################################
+
+# Defining functions to load the data from DB1 Reports.
+load_CSV_DB1 <- function(path) { 
+  csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
+  tables <- lapply(csv_files, function(file){
+    file %>%
+      read_csv(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage)) %>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
+  })
+  do.call(rbind, tables)
+}
+
+load_excel_DB1 <- function(path) { 
+  excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel_files, function(file){
+    file %>%
+      read_excel(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))%>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
+  })
+  do.call(rbind, tables)
+}
+# Creates dataframe with Database usage in a tidy format.
+Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
+
+###############################################################################
+# Import Journal  Usage Information____________________________________________
+###############################################################################
+# Defining Functions to Load JR1 Data.
+load_CSV_JR1 <- function(path) { 
+  csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
+  tables <- lapply(csv_files, function(file){
+    file %>%
+      read_csv(skip=7, col_names = TRUE) %>%
+      slice(-1) %>%
+      subset(select = -c(8,9,10)) %>%
+      gather(Date, Usage, -c(1:7)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))
+  })
+  do.call(rbind, tables)
+}
+
+load_excel_JR1 <- function(path) { 
+  excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel_files, function(file){
+    file %>%
+      read_excel(skip=7, col_names = TRUE) %>%
+      slice(-1) %>%
+      subset(select = -c(8,9,10)) %>%
+      gather(Date, Usage, -c(1:7)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))
+  })
+  do.call(rbind, tables)
+}
+
+# Creates dataframe with journal usage in a tidy format.
+Tidy_JR1_data <-unique(rbind(load_CSV_JR1(JR1folder),load_excel_JR1(JR1folder)))
+
+
+###############################################################################
+# Import Pricing Information___________________________________________________
+###############################################################################
+
+# This creates a blank template to help with the import of pricing data.
+DB_Pricing_Blank <- Tidy_DB1_data %>%
+  mutate(Year = year(Date)) %>%
+  distinct(Database, Publisher,Platform, Year) %>%
+  mutate(Price ="", Notes="", Fund="", Ordering_Site="", Order_Detail="Fiscal Year") %>%
+  spread(Year,Price) %>%
+  write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
+
+# Imports the pricing information file.
+Raw_DB_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"), col_names = TRUE)
+
+# Creates a variable to describe the pricing data information. 
+# This sets the number of descriptive columns at 7 (the rest are years)
+DB_Pricing_Desc <- 7
+
+# Creates a tidy dataframe of just database pricing.
+# Keeps only the notes and fund information.
+# Excludes databases without pricing.
+Tidy_DB_Pricing <- Raw_DB_Pricing %>%
+  gather(Fiscal_Year, Cost, (DB_Pricing_Desc +1):(ncol(Raw_DB_Pricing))) %>%
+  filter(!is.na(Cost)) %>%
+  subset(select = -c(6:7))
+###############################################################################
+# Combine Usage and Cost! _____________________________________________________
+# Calculating Cost Per Use ____________________________________________________
+###############################################################################
+
+# Starting points: the two "tidy" dataframes (Use and Pricing)
+# Summarizes use on the fiscal year.
+CPU1_Use <- Tidy_DB1_data %>%
+  mutate(Year = year(Date), Month=month(Date)) %>%
+  mutate(Fiscal_Year = ifelse(Month >6, Year + 1,Year)) %>%
+  group_by(Database, Publisher,Platform, User_Activity, Fiscal_Year) %>%
+  summarize(Total_Usage= sum(Usage))
+
+CPU1_Cost <- Tidy_DB_Pricing %>%
+  subset(select = -c(4:5))
+
+# Merge Use and Cost dataframes by Database, Publisher, Platform, and Fiscal Year.
+CPU_Combined <- merge(CPU1_Use, CPU1_Cost, by=c("Database","Publisher","Platform","Fiscal_Year"))
+
+# Adds new column that calculates cost per user action.
+CPU_Combined$Cost_Per_User_Action <- CPU_Combined$Cost/CPU_Combined$Total_Usage
+# Writes to CSV file.
+write_csv(CPU_Combined, paste(output, "Cost_Per_Use.csv",sep="/"))
+
+
+Cost_Per_Use1 <- CPU_Combined %>%
+  subset(select=-c(6:7)) %>%
+  filter(Fiscal_Year > 2015) %>%
+  spread(User_Activity,Cost_Per_User_Action) %>%
+  write_csv(paste(output, "Cost_Per_Use1.csv",sep="/"))
+
+```
+
+## Pricing
+
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+cost.report.1 <- function(DatabaseName){
+  Tidy_DB_Pricing %>%
+    filter(Fiscal_Year < 2018) %>%
+    filter(Database == DatabaseName) %>%
+    arrange(Fiscal_Year) %>%
+    group_by(Database) %>%
+    mutate(Change_In_Price = Cost-lag(Cost)) %>%
+    mutate(Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
+    mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
+    filter(Fiscal_Year > 2013) %>%
+    subset(select = -c(2:5))
+}
+cost.report.1("Business Source Complete")
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
