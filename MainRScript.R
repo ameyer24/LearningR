@@ -65,6 +65,8 @@ load_excel_DB1 <- function(path) {
 # Creates dataframe with Database usage in a tidy format.
 Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
 
+# Find the NA dates - these are problems to fix (somehow)
+Missing.dates <- subset(Tidy_DB1_data, is.na(Tidy_DB1_data$Date))
 ###############################################################################
 # Import Journal  Usage Information____________________________________________
 ###############################################################################
@@ -100,7 +102,7 @@ load_excel_JR1 <- function(path) {
 # Creates dataframe with journal usage in a tidy format.
 Tidy_JR1_data <-unique(rbind(load_CSV_JR1(JR1folder),load_excel_JR1(JR1folder)))
 
-
+Missing.dates <- subset(Tidy_JR1_data, is.na(Tidy_JR1_data$Date))
 ###############################################################################
 # Import Pricing Information___________________________________________________
 ###############################################################################
