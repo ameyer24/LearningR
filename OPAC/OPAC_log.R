@@ -39,7 +39,22 @@ vufind.column.names <- c("AccessMethod",
 
 Vufind.SearchURL.pattern <- "(GET) (.+[\\?])(lookfor.*?[\\&| ])?(type.*?[\\&| ])?(start.*?[\\&| ])?(submit.*?[\\&| ])?(only.*?[\\&| ])?(search.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(view.*?[\\&| ])?(sort.*?[\\&| ])?(page.*?[\\&| ])?"
 
-Vufind.SearchURL.column.names <- c("cat1","c2","c3","c4","c5","c6","c7","c8","c9","c11","c11","c12","c13","c14","c15","c16","c17")
+Vufind.SearchURL.column.names <- c("GET",
+                                   "FirstPart",
+                                   "LookFor",
+                                   "Type",
+                                   "Start",
+                                   "Submit",
+                                   "OnlyMine",
+                                   "Search",
+                                   "Filter1",
+                                   "Filter2",
+                                   "Filter3",
+                                   "Filter4",
+                                   "Filter5",
+                                   "View",
+                                   "Sort",
+                                   "Page")
 
 ###############################################################################
 # Reading the log files into R-------------------------------------------------
@@ -59,6 +74,11 @@ raw.vufind.data <- do.call(rbind, lapply(log.files,
                                          col.names = vufind.column.names,
                                          comment.char = ""))
 
+###############################################################################
+# Filtering the data by institution--------------------------------------------
+###############################################################################
+
+# Filters out only NPU lines.
 NPU.vufind.data <- raw.vufind.data %>%
   filter(grepl('vf-npu',SearchURL)) %>%
   mutate(DateTime = as.POSIXct(DateTime,
@@ -66,16 +86,19 @@ NPU.vufind.data <- raw.vufind.data %>%
                                format="[%d/%b/%Y:%H:%M:%S"))
 
 
-
+# Filters out only the lines that contain search information.
 NPU.vufind.searches <- NPU.vufind.data %>%
   filter(grepl("Search/Home",SearchURL))
 
+###############################################################################
+# Divides the SearchURL into useful parts--------------------------------------
+###############################################################################
 
-# Divides the SearchURL field into parts.
-test1 <- str_match(NPU.vufind.searches$SearchURL, Vufind.SearchURL.pattern)
-test2 <- str_detect(NPU.vufind.searches$SearchURL, Vufind.SearchURL.pattern)
-test3 <- separate(data = NPU.vufind.searches,
-           col = SearchURL,
-           into = Vufind.SearchURL.column.names,
-           sep = Vufind.SearchURL.pattern)
+# This divides the SearchURL into parts.
+NPU.vufind.searches.details <- as.data.frame(str_match(NPU.vufind.searches$SearchURL, Vufind.SearchURL.pattern))
 
+# Trying to "extract" the information
+test1 <- NPU.vufind.searches %>%
+  extract(col = SearchURL,
+          into = Vufind.SearchURL.column.names,
+          regex = Vufind.SearchURL.pattern)
