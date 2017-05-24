@@ -34,10 +34,9 @@ vufind.column.names <- c("AccessMethod",
                          "Browser")
 
 # Using regular expressions to parse out the SearchURL field.
-# It's a mess but it's a start!
 # Currently returns only the first five filters.
 
-Vufind.SearchURL.pattern <- "(GET) (.+[\\?])(lookfor.*?[\\&| ])?(type.*?[\\&| ])?(start.*?[\\&| ])?(submit.*?[\\&| ])?(only.*?[\\&| ])?(search.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(view.*?[\\&| ])?(sort.*?[\\&| ])?(page.*?[\\&| ])?"
+Vufind.SearchURL.regex <- "(GET) (.+[\\?])(lookfor.*?[\\&| ])?(type.*?[\\&| ])?(start.*?[\\&| ])?(submit.*?[\\&| ])?(only.*?[\\&| ])?(search.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(view.*?[\\&| ])?(sort.*?[\\&| ])?(page.*?[\\&| ])?"
 
 Vufind.SearchURL.column.names <- c("GET",
                                    "FirstPart",
@@ -94,11 +93,10 @@ NPU.vufind.searches <- NPU.vufind.data %>%
 # Divides the SearchURL into useful parts--------------------------------------
 ###############################################################################
 
-# This divides the SearchURL into parts.
-NPU.vufind.searches.details <- as.data.frame(str_match(NPU.vufind.searches$SearchURL, Vufind.SearchURL.pattern))
+# This creates a new dataframe with the SearchURL divided into parts.
+NPU.vufind.searches.divided <- extract(data = NPU.vufind.searches,
+                                       col = SearchURL,
+                                       into = Vufind.SearchURL.column.names,
+                                       regex = Vufind.SearchURL.regex)
+write.csv(NPU.vufind.searches.divided, "Q:/OPAC_Logs/NPUSearches.csv")
 
-# Trying to "extract" the information
-test1 <- NPU.vufind.searches %>%
-  extract(col = SearchURL,
-          into = Vufind.SearchURL.column.names,
-          regex = Vufind.SearchURL.pattern)
