@@ -34,9 +34,12 @@ vufind.column.names <- c("AccessMethod",
                          "Browser")
 
 # Using regular expressions to parse out the SearchURL field.
+# This regex returns the entire string divided into parts.
 # Currently returns only the first five filters.
 
 Vufind.SearchURL.regex <- "(GET) (.+[\\?])(lookfor.*?[\\&| ])?(type.*?[\\&| ])?(start.*?[\\&| ])?(submit.*?[\\&| ])?(only.*?[\\&| ])?(search.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(filter.*?[\\&| ])?(view.*?[\\&| ])?(sort.*?[\\&| ])?(page.*?[\\&| ])?"
+
+# Work on improving regex to return only the important parts.
 
 Vufind.SearchURL.column.names <- c("GET",
                                    "FirstPart",
@@ -60,7 +63,7 @@ Vufind.SearchURL.column.names <- c("GET",
 ###############################################################################
 
 # Testing Things Out one file at a time.
-raw.vufind.data <- read.table("Q:/OPAC_Logs/vufind_access_log.20170304.gz",
+raw.vufind.data <- read.table("Q:/OPAC_Logs/vufind_access_log.20170501.gz",
            colClasses = vufind.column.classes,
            col.names = vufind.column.names,
            comment.char = "")
@@ -83,7 +86,9 @@ NPU.vufind.data <- raw.vufind.data %>%
   mutate(DateTime = as.POSIXct(DateTime,
                                tz="GMT",
                                format="[%d/%b/%Y:%H:%M:%S"))
-
+###############################################################################
+# Filtering the data for only searches-----------------------------------------
+###############################################################################
 
 # Filters out only the lines that contain search information.
 NPU.vufind.searches <- NPU.vufind.data %>%
@@ -98,5 +103,22 @@ NPU.vufind.searches.divided <- extract(data = NPU.vufind.searches,
                                        col = SearchURL,
                                        into = Vufind.SearchURL.column.names,
                                        regex = Vufind.SearchURL.regex)
+
 write.csv(NPU.vufind.searches.divided, "Q:/OPAC_Logs/NPUSearches.csv")
 
+# A clunky step to clean up the data in the divided table.
+# This can be extended to cover all cases.
+# Perhaps better way to do this.
+NPU.vufind.searches.clean <- NPU.vufind.searches.divided %>%
+  mutate(LookFor = gsub("lookfor=","",LookFor)) %>%
+  mutate(Type = gsub("type=","",Type))
+  
+write.csv(NPU.vufind.searches.clean, "C:/NPUSearches.csv")
+
+###############################################################################
+# Filtering the data for only record views-------------------------------------
+###############################################################################
+
+# Filters out only the lines that contain search information.
+NPU.vufind.records <- NPU.vufind.data %>%
+  filter(grepl("vf-npu/Record",SearchURL))
