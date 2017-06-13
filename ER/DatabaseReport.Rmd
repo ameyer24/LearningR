@@ -1,0 +1,171 @@
+---
+title: "Electronic Resource Reports"
+author: "Andy Meyer"
+date: "June 13, 2017"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+###############################################################################
+# Installing and Loading Packages _____________________________________________
+###############################################################################
+install.packages("tidyverse")
+install.packages("readxl")
+install.packages("xlsx")
+install.packages("zoo")
+install.packages("mosaic")
+install.packages("scales")
+library(mosaic)
+library(xlsx)
+library(tidyverse)
+library(readxl)
+library(zoo)
+library(lubridate)
+library(scales)
+
+###############################################################################
+# Reading the files and tidying the data ______________________________________
+###############################################################################
+
+# Setting up the folders
+input <- "C:/DataScience/inputs"
+output <- "C:/DataScience/outputs"
+DB1folder <- "C:/DataScience/inputs/DB1Reports"
+JR1folder <- "C:/DataScience/inputs/JR1Reports"
+
+###############################################################################
+# Import Database1 Usage Information___________________________________________
+###############################################################################
+
+# Defining functions to load the data from DB1 Reports.
+load_CSV_DB1 <- function(path) { 
+  csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
+  tables <- lapply(csv_files, function(file){
+    file %>%
+      read_csv(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage)) %>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
+  })
+  do.call(rbind, tables)
+}
+
+load_excel_DB1 <- function(path) { 
+  excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel_files, function(file){
+    file %>%
+      read_excel(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage))%>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
+  })
+  do.call(rbind, tables)
+}
+# Creates dataframe with Database usage in a tidy format.
+Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
+
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r include=FALSE}
+# Cost summary.
+cost.report.1 <- function(DatabaseName){
+  Tidy_DB_Pricing %>%
+    filter(Fiscal_Year < 2018) %>%
+    filter(Database == DatabaseName) %>%
+    arrange(Fiscal_Year) %>%
+    group_by(Database) %>%
+    mutate(Change_In_Price = Cost-lag(Cost)) %>%
+    mutate(Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
+    mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
+    filter(Fiscal_Year > 2013) %>%
+    subset(select = -c(2:5)) %>%
+    write_csv(paste(output, "cost.report.1.csv",sep="/"))
+}
+cost.report.1("Business Source Complete")
+
+# Graphing database pricing.
+cost.graph.1 <- function(DatabaseName){
+  Tidy_DB_Pricing %>%
+    filter(Database==DatabaseName) %>%
+    filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
+    ggplot(aes(x=Fiscal_Year,y=Cost, label=Cost)) +
+    geom_bar(stat="identity", fill="darkgreen")
+}
+cost.graph.1("Business Source Complete")
+
+# Graphing database usage.
+usage.graph.1 <- function(DatabaseName) {
+  Tidy_DB1_data %>%
+    filter(Database==DatabaseName) %>%
+    ggplot(aes(Date, Usage)) +
+    geom_line() +
+    geom_smooth(span=0.7) +
+    scale_x_yearmon() +
+    facet_grid(User_Activity ~ ., scales = "free")
+}
+usage.graph.1("Business Source Complete")
+
+# Graphing database usage.
+usage.graph.2 <- function(DatabaseName) {
+  Tidy_DB1_data %>%
+    filter(Database == DatabaseName) %>%
+    filter(User_Activity != "Searches-federated and automated") %>%
+    ggplot(aes(Date, Usage)) +
+    geom_line() +
+    geom_smooth(span=0.7) +
+    scale_x_yearmon() +
+    facet_grid(User_Activity ~ .)
+}
+usage.graph.2("Business Source Complete")
+
+# Graphing database usage.
+usage.graph.3 <- function(DatabaseName) {
+  Tidy_DB1_data %>%
+    filter(Database == DatabaseName) %>%
+    filter(User_Activity != "Searches-federated and automated") %>%
+    mutate(Year = year(Date), Month=month(Date)) %>%
+    filter(Year>2014) %>%
+    mutate(Academic_Term = derivedFactor(
+      "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
+      "S2 (Summer)" = (Month==5 | Month==6 | Month==7 | Month==8),
+      "S3 (Fall)" = (Month==9 | Month==10 | Month==11 | Month==12),
+      .default = "Unknown"
+    )) %>%
+    mutate(Academic_Year = paste(Year, Academic_Term, sep=" "))%>%
+    group_by(Database, Publisher, Platform, User_Activity, Academic_Year) %>%
+    summarize(Usage=sum(Usage)) %>%
+    ggplot(aes(Academic_Year,Usage)) +
+    facet_grid(User_Activity ~ .) + 
+    geom_line(aes(group=User_Activity))
+}
+usage.graph.3("Business Source Complete")
+```
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
