@@ -65,11 +65,8 @@ load_excel_DB1 <- function(path) {
 # Creates dataframe with Database usage in a tidy format.
 Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
 
-# Find the NA dates - these are problems to fix (somehow)
-Missing.dates <- subset(Tidy_DB1_data, is.na(Tidy_DB1_data$Date))
-
 # See what information we have for what databases.
-date.summary <- Tidy_DB1_data %>%
+DB1.summary <- Tidy_DB1_data %>%
   group_by(Platform, Date) %>%
   summarise(Total_Usage = sum(Usage)) %>%
   spread(Date,Total_Usage)
@@ -112,7 +109,11 @@ load_excel_JR1 <- function(path) {
 # Creates dataframe with journal usage in a tidy format.
 Tidy_JR1_data <-unique(rbind(load_CSV_JR1(JR1folder),load_excel_JR1(JR1folder)))
 
-Missing.dates <- subset(Tidy_JR1_data, is.na(Tidy_JR1_data$Date))
+JR1.summary <- Tidy_JR1_data %>%
+  group_by(Platform, Date) %>%
+  summarise(Total_Usage = sum(Usage)) %>%
+  spread(Date,Total_Usage)
+
 ###############################################################################
 # Import Pricing Information___________________________________________________
 ###############################################################################
@@ -202,7 +203,6 @@ DBSummary4_1 <- Tidy_DB1_data %>%
   summarize(Total_Usage= sum(Usage)) %>%
   spread(User_Activity, Total_Usage) %>%
   write_csv(paste(output, "DBSummary4_1.csv",sep="/"))
-
 
 
 # Summarize journal usage data by spreading into a "Counter" like report.
