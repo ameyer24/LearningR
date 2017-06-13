@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r Installing Packages, message=FALSE, warning=FALSE, include=FALSE}
+```{r Installing Packages, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 ###############################################################################
 # Installing and Loading Packages _____________________________________________
 ###############################################################################
@@ -191,7 +191,21 @@ usage.graph.3 <- function(DatabaseName) {
 
 ```{r}
 cost.graph.1("Business Source Complete")
+
+```
+
+```{r}
 usage.graph.2("Business Source Complete")
+
+```
+```{r}
+
 usage.graph.1("Business Source Complete")
+
+```
+```{r}
+
 usage.graph.3("Business Source Complete")
 ```
+
+
