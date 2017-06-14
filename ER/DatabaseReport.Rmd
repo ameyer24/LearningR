@@ -3,7 +3,10 @@ title: "Electronic Resource Reports"
 author: "Andy Meyer"
 date: "June 13, 2017"
 output:
-  pdf_document: default
+  pdf_document: 
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
   html_document: default
   word_document: default
 ---
@@ -29,7 +32,6 @@ install.packages("scales")
 
 ```
 
-
 ```{r Loading Packages, message=FALSE, warning=FALSE}
 library(mosaic)
 library(xlsx)
@@ -39,9 +41,6 @@ library(zoo)
 library(lubridate)
 library(scales)
 ```
-
-
-## This is a test.
 
 ```{r Reading files and creating tidy dataframe, include=FALSE}
 ###############################################################################
@@ -107,11 +106,6 @@ Tidy_DB_Pricing <- Raw_DB_Pricing %>%
   subset(select = -c(6:7))
 
 ```
-
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 ```{r Defining the Funcitons, include=FALSE}
 # Cost summary.
@@ -188,9 +182,21 @@ usage.graph.3 <- function(DatabaseName) {
 
 ```
 
+# Overview
+
+This is the first draft at creating electronic resource usage reports in R. This script brings together usage information (from Counter Reports) and pricing information to provide an overview of electronic usage and trends.
+
+
+\newpage
+# Reports by Database
+##Business Source Complete
 
 ```{r}
 cost.graph.1("Business Source Complete")
+
+```
+```{r}
+usage.graph.1("Business Source Complete")
 
 ```
 
@@ -198,11 +204,7 @@ cost.graph.1("Business Source Complete")
 usage.graph.2("Business Source Complete")
 
 ```
-```{r}
 
-usage.graph.1("Business Source Complete")
-
-```
 ```{r}
 
 usage.graph.3("Business Source Complete")
