@@ -20,6 +20,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r Installing Packages, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+
 ###############################################################################
 # Installing and Loading Packages _____________________________________________
 ###############################################################################
@@ -29,10 +30,10 @@ install.packages("xlsx")
 install.packages("zoo")
 install.packages("mosaic")
 install.packages("scales")
-
 ```
 
 ```{r Loading Packages, message=FALSE, warning=FALSE}
+
 library(mosaic)
 library(xlsx)
 library(tidyverse)
@@ -43,6 +44,7 @@ library(scales)
 ```
 
 ```{r Reading files and creating tidy dataframe, include=FALSE}
+
 ###############################################################################
 # Reading the files and tidying the data ______________________________________
 ###############################################################################
@@ -188,26 +190,25 @@ This is the first draft at creating electronic resource usage reports in R. This
 
 
 \newpage
+
 # Reports by Database
 ##Business Source Complete
 
-```{r}
-cost.graph.1("Business Source Complete")
-
-```
-```{r}
-usage.graph.1("Business Source Complete")
-
-```
-
-```{r}
-usage.graph.2("Business Source Complete")
-
+```{r, message=FALSE}
+dbName = "Business Source Complete"
+cost.graph.1(dbName)
+cost.report.1(dbName)
+usage.graph.1(dbName)
+usage.graph.2(dbName)
+usage.graph.3(dbName)
 ```
 
-```{r}
+##CINAHL Complete
 
-usage.graph.3("Business Source Complete")
+```{r, message=FALSE}
+dbName = "CINAHL Complete"
+cost.graph.1(dbName)
+usage.graph.1(dbName)
+usage.graph.2(dbName)
+usage.graph.3(dbName)
 ```
-
-
