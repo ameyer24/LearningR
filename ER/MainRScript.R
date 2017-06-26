@@ -283,7 +283,7 @@ CostGraph1 +
 ## Breakdown by Fund and Year
 ## work in progress
 CostGraph2 <- Tidy_DB_Pricing %>%
-  filter(Fiscal_Year > 2014, Fiscal_Year <2018) %>%
+  filter(Fiscal_Year > 2014, Fiscal_Year < 2018) %>%
   filter(!is.na(Cost))%>%
   group_by(Fund, Fiscal_Year, Database) %>%
   summarize(Total_Cost=sum(Cost))%>%
@@ -458,30 +458,53 @@ Graph7
 ###############################################################################
 # I'm going to explore writing functions to do some reporting.
 # I'm repeating code I used above. Want to do this independently as possible.
+# This seems like a better approach. Going to continue doing this.
 
-# Cost summary.
-cost.report.1 <- function(DatabaseName){
+###############################################################################
+# Cost Functions ______________________________________________________________
+###############################################################################
+
+# Subfunctions to make life better.
+price.change.sub <- function(Cost1,Cost2){
+  ifelse(is.null(Cost2) || Cost2 == 0,"New Subscription",)
+  if () {
+    return("New Subscription")}
+  else {
+      return(Cost1 - Cost2)
+    } 
+}
+price.change.sub(99,0)
+
+percent.change.sub <- function(Cost1,Cost2) {
+  Change = (Cost1-Cost2)/Cost2
+  Change = paste(round((Change * 100), digits=2),"%",sep="")
+  return(Change)
+}
+
+cost.table.1 <- function(DatabaseName,StartYear,EndYear){
   Tidy_DB_Pricing %>%
-    filter(Fiscal_Year < 2018) %>%
+    filter(Fiscal_Year < EndYear) %>%
     filter(Database == DatabaseName) %>%
     arrange(Fiscal_Year) %>%
     group_by(Database) %>%
-    mutate(Change_In_Price = Cost-lag(Cost)) %>%
-    mutate(Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
-    mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
-    filter(Fiscal_Year > 2013) %>%
-    subset(select = -c(2:5)) %>%
+    mutate(Price_Change = price.change.sub(Cost,lag(Cost))) %>%
+    mutate(Percent_Change = percent.change.sub(Cost,lag(Cost))) %>%
+    filter(Fiscal_Year > StartYear) %>%
+    subset(select = -c(1:5)) %>%
     write_csv(paste(output, "cost.report.1.csv",sep="/"))
 }
-cost.report.1("Business Source Complete")
+test = cost.table.1("Business Source Complete", 2012, 2018)
 
 # Graphing database pricing.
 cost.graph.1 <- function(DatabaseName){
   Tidy_DB_Pricing %>%
     filter(Database==DatabaseName) %>%
     filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
-    ggplot(aes(x=Fiscal_Year,y=Cost, label=Cost)) +
-    geom_bar(stat="identity", fill="darkgreen")
+    ggplot(aes(x=Fiscal_Year, y=Cost, label=Cost)) +
+    geom_bar(stat="identity", fill="darkgreen") +
+    ggtitle(paste(DatabaseName)) +
+    xlab("Fiscal Year") +
+    ylab("Cost of Subscription")
 }
 cost.graph.1("Business Source Complete")
 

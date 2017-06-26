@@ -5,8 +5,12 @@ date: "June 13, 2017"
 output:
   pdf_document: 
     fig_caption: yes
+    fig_height: 5
+    fig_width: 7
+    highlight: zenburn
     number_sections: yes
     toc: yes
+    toc_depth: 4
   html_document: default
   word_document: default
 ---
@@ -41,6 +45,7 @@ library(readxl)
 library(zoo)
 library(lubridate)
 library(scales)
+library(knitr)
 ```
 
 ```{r Reading files and creating tidy dataframe, include=FALSE}
@@ -111,28 +116,30 @@ Tidy_DB_Pricing <- Raw_DB_Pricing %>%
 
 ```{r Defining the Funcitons, include=FALSE}
 # Cost summary.
-cost.report.1 <- function(DatabaseName){
+cost.table.1 <- function(DatabaseName,StartYear,EndYear){
   Tidy_DB_Pricing %>%
-    filter(Fiscal_Year < 2018) %>%
+    filter(Fiscal_Year < EndYear) %>%
     filter(Database == DatabaseName) %>%
     arrange(Fiscal_Year) %>%
     group_by(Database) %>%
-    mutate(Change_In_Price = Cost-lag(Cost)) %>%
-    mutate(Change_In_Price_Percent = (Cost-lag(Cost))/lag(Cost)) %>%
-    mutate(Change_In_Price_Percent = paste(round((Change_In_Price_Percent * 100), digits=2),"%",sep="")) %>%
-    filter(Fiscal_Year > 2013) %>%
-    subset(select = -c(2:5)) %>%
+    mutate(Price_Change = Cost-lag(Cost)) %>%
+    mutate(Percent_Change = (Cost-lag(Cost))/lag(Cost)) %>%
+    mutate(Percent_Change = paste(round((Percent_Change * 100), digits=2),"%",sep="")) %>%
+    filter(Fiscal_Year > StartYear) %>%
+    subset(select = -c(1:5)) %>%
     write_csv(paste(output, "cost.report.1.csv",sep="/"))
 }
-
 
 # Graphing database pricing.
 cost.graph.1 <- function(DatabaseName){
   Tidy_DB_Pricing %>%
     filter(Database==DatabaseName) %>%
     filter(Fiscal_Year > 2013, Fiscal_Year < 2018) %>%
-    ggplot(aes(x=Fiscal_Year,y=Cost, label=Cost)) +
-    geom_bar(stat="identity", fill="darkgreen")
+    ggplot(aes(x=Fiscal_Year, y=Cost, label=Cost)) +
+    geom_bar(stat="identity", fill="darkgreen") +
+    # ggtitle(paste(DatabaseName)) +
+    xlab("Fiscal Year") +
+    ylab("Cost of Subscription")
 }
 
 
@@ -192,16 +199,26 @@ This is the first draft at creating electronic resource usage reports in R. This
 \newpage
 
 # Reports by Database
-##Business Source Complete
+## Business Source Complete
+What is this database?
 
-```{r, message=FALSE}
+### Cost
+This is an introduction to the cost section.
+```{r}
 dbName = "Business Source Complete"
+kable(cost.table.1(dbName, 2012, 2018))
 cost.graph.1(dbName)
-cost.report.1(dbName)
+```
+\newpage
+
+### Usage
+This is a comment.
+```{r}
 usage.graph.1(dbName)
 usage.graph.2(dbName)
 usage.graph.3(dbName)
 ```
+\newpage
 
 ##CINAHL Complete
 
