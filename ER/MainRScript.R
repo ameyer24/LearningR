@@ -57,7 +57,7 @@ load_excel_DB1 <- function(path) {
       subset(select = -c(5)) %>%
       gather(Date, Usage, -c(1:4)) %>%
       mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
-      mutate(Usage = as.numeric(Usage))%>%
+      mutate(Usage = as.numeric(Usage)) %>%
       plyr::rename(replace = c("User Activity" = "User_Activity"))
   })
   do.call(rbind, tables)
@@ -122,12 +122,17 @@ JR1.summary <- Tidy_JR1_data %>%
 DB_Pricing_Blank <- Tidy_DB1_data %>%
   mutate(Year = year(Date)) %>%
   distinct(Database, Publisher,Platform, Year) %>%
-  mutate(Price ="", Notes="", Fund="", Ordering_Site="", Order_Detail="Fiscal Year") %>%
+  mutate(Price ="",
+         Notes="",
+         Fund="",
+         Ordering_Site="",
+         Order_Detail="Fiscal Year") %>%
   spread(Year,Price) %>%
   write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
 
 # Imports the pricing information file.
-Raw_DB_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"), col_names = TRUE)
+Raw_DB_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"),
+                           col_names = TRUE)
 
 # Creates a variable to describe the pricing data information. 
 # This sets the number of descriptive columns at 7 (the rest are years)
@@ -144,7 +149,7 @@ Tidy_DB_Pricing <- Raw_DB_Pricing %>%
 
 
 ###############################################################################
-# Summarize and Transform Usage Data___________________________________________
+# Summarize and Transform Usage Data __________________________________________
 ###############################################################################
 # See what publishers we have in the dataset.
 unique(c(Tidy_DB1_data$Publisher))
@@ -461,39 +466,109 @@ Graph7
 # This seems like a better approach. Going to continue doing this.
 
 ###############################################################################
-# Cost Functions ______________________________________________________________
+# Cost Overview Functions _____________________________________________________
 ###############################################################################
-
-# Subfunctions to make life better.
-price.change.sub <- function(Cost1,Cost2){
-  ifelse(is.null(Cost2) || Cost2 == 0,"New Subscription",)
-  if () {
-    return("New Subscription")}
-  else {
-      return(Cost1 - Cost2)
-    } 
+# Sums the  cost of databases by fiscal year.
+cost.overview.1 <- function(StartYear,EndYear){
+  Tidy_DB_Pricing %>%
+    filter(Fiscal_Year < EndYear) %>%
+    filter(Fiscal_Year > StartYear) %>%
+    group_by(Fiscal_Year) %>%
+    summarize(Total_Cost= sum(Cost)) %>%
+    spread(Fiscal_Year, Total_Cost) %>%
+    write_csv(paste(output, "cost.overview.1.csv",sep="/"))
 }
-price.change.sub(99,0)
+test = cost.overview.1(2012,2018)
 
-percent.change.sub <- function(Cost1,Cost2) {
-  Change = (Cost1-Cost2)/Cost2
-  Change = paste(round((Change * 100), digits=2),"%",sep="")
-  return(Change)
+# Sums the  cost of databases by fund and fiscal year.
+cost.overview.2 <- function(StartYear,EndYear){
+  Tidy_DB_Pricing %>%
+    filter(Fiscal_Year < EndYear) %>%
+    filter(Fiscal_Year > StartYear) %>%
+    group_by(Fund, Fiscal_Year) %>%
+    summarize(Total_Cost= sum(Cost)) %>%
+    spread(Fiscal_Year, Total_Cost) %>%
+    write_csv(paste(output, "cost.overview.2.csv",sep="/"))
+}
+test = cost.overview.2(2012,2018)
+
+# Sums the cost of databases by fund and fiscal year.
+cost.overview.3 <- function(StartYear,EndYear){
+  Tidy_DB_Pricing %>%
+    filter(Fiscal_Year < EndYear) %>%
+    filter(Fiscal_Year > StartYear) %>%
+    group_by(Fund, Fiscal_Year, Database) %>%
+    summarize(Total_Cost= sum(Cost)) %>%
+    spread(Fiscal_Year, Total_Cost) %>%
+    write_csv(paste(output, "cost.overview.3.csv",sep="/"))
+}
+test = cost.overview.3(2012,2018)
+
+# A sub-function to calculate the change in price.
+# Handles NA values and no change better.
+subfun.cost.diff <- function(Cost1,Cost2){
+  cost.diff <- ifelse(Cost2 == 0 | is.na(Cost2),
+                      Cost1,
+                      Cost1-Cost2)
+  return(cost.diff)
 }
 
-cost.table.1 <- function(DatabaseName,StartYear,EndYear){
+
+# Summarize the change in cost for one database over time.
+cost.overview.4 <- function(DatabaseName,StartYear,EndYear){
   Tidy_DB_Pricing %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Database == DatabaseName) %>%
     arrange(Fiscal_Year) %>%
     group_by(Database) %>%
-    mutate(Price_Change = price.change.sub(Cost,lag(Cost))) %>%
-    mutate(Percent_Change = percent.change.sub(Cost,lag(Cost))) %>%
+    mutate(Change_In_Price = subfun.cost.diff(Cost, lag(Cost))) %>%
     filter(Fiscal_Year > StartYear) %>%
-    subset(select = -c(1:5)) %>%
-    write_csv(paste(output, "cost.report.1.csv",sep="/"))
+    subset(select = -c(2:5)) %>%
+    write_csv(paste(output, "cost.overview.4.csv",sep="/"))
 }
-test = cost.table.1("Business Source Complete", 2012, 2018)
+test = cost.overview.4("Morningstar Investment Research Center", 2011, 2018)
+
+# A sub-function to calculate the percent change in cost.
+# Handles NA values and no change better.
+subfun.percent.cost.diff <- function(Cost1,Cost2){
+  percent.cost.diff <- ifelse(Cost2 == 0 | is.na(Cost2),
+                      0,
+                      (Cost1-Cost2)/Cost2)
+  return(percent.cost.diff)
+}
+
+# Summarize the change in cost for one database over time.
+cost.overview.5 <- function(DatabaseName,StartYear,EndYear){
+  Tidy_DB_Pricing %>%
+    filter(Fiscal_Year < EndYear) %>%
+    filter(Database == DatabaseName) %>%
+    arrange(Fiscal_Year) %>%
+    group_by(Database) %>%
+    mutate(Percent_Change = subfun.percent.cost.diff(Cost, lag(Cost))) %>%
+    filter(Fiscal_Year > StartYear) %>%
+    subset(select = -c(2:5)) %>%
+    write_csv(paste(output, "cost.overview.5.csv",sep="/"))
+}
+test = cost.overview.5("Morningstar Investment Research Center", 2012, 2018)
+
+# Summarize the change in cost for each database over time.
+cost.overview.6 <- function(StartYear,EndYear){
+  Tidy_DB_Pricing %>%
+    filter(Fiscal_Year < EndYear) %>%
+    arrange(Fiscal_Year) %>%
+    group_by(Database) %>%
+    mutate(Percent_Change = subfun.percent.cost.diff(Cost, lag(Cost))) %>%
+    filter(Fiscal_Year > StartYear) %>%
+    spread(Fiscal_Year, Percent_Change) %>%
+    subset(select = -c(2:6)) %>%
+    write_csv(paste(output, "cost.overview.6.csv",sep="/"))
+}
+test = cost.overview.6(2012, 2018)
+
+###############################################################################
+# Cost Functions ______________________________________________________________
+###############################################################################
+
 
 # Graphing database pricing.
 cost.graph.1 <- function(DatabaseName){
