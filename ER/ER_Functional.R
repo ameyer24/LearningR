@@ -1,7 +1,7 @@
-# Overview
-# This script was written to look at electronic resources usage.
-# It looks at electronic resource usage (from Counter reports)
-# It also uses pricing information entered by the user.
+# This script looks at electronic resources usage and pricing information.
+# It ingests DB1 and JR1 Counter Reports (Version 4)
+# It allows libraries to import pricing information.
+# It then calculates cost per use and other summaries.
 
 ###############################################################################
 # Installing and Loading Packages _____________________________________________
@@ -25,8 +25,8 @@ library(scales)
 ###############################################################################
 
 # Setting up the folders
-input <- "C:/DataScience/inputs"
-output <- "C:/DataScience/outputs"
+input.folder <- "C:/DataScience/inputs"
+output.folder <- "C:/DataScience/outputs"
 DB1folder <- "C:/DataScience/inputs/DB1Reports"
 JR1folder <- "C:/DataScience/inputs/JR1Reports"
 
@@ -35,9 +35,9 @@ JR1folder <- "C:/DataScience/inputs/JR1Reports"
 ###############################################################################
 
 # Defining functions to load the data from DB1 Reports.
-load_CSV_DB1 <- function(path) { 
-  csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
-  tables <- lapply(csv_files, function(file){
+load.DB1.csv <- function(path) { 
+  csv.files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
+  tables <- lapply(csv.files, function(file){
     file %>%
       read_csv(skip=7, col_names = TRUE) %>%
       subset(select = -c(5)) %>%
@@ -49,9 +49,9 @@ load_CSV_DB1 <- function(path) {
   do.call(rbind, tables)
 }
 
-load_excel_DB1 <- function(path) { 
-  excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
-  tables <- lapply(excel_files, function(file){
+load.DB1.excel <- function(path) { 
+  excel.files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel.files, function(file){
     file %>%
       read_excel(skip=7, col_names = TRUE) %>%
       subset(select = -c(5)) %>%
@@ -62,25 +62,23 @@ load_excel_DB1 <- function(path) {
   })
   do.call(rbind, tables)
 }
+
 # Creates dataframe with Database usage in a tidy format.
-Tidy_DB1_data <-unique(rbind(load_CSV_DB1(DB1folder),load_excel_DB1(DB1folder)))
+DB1 <-unique(rbind(load.DB1.csv(DB1folder),load.DB1.excel(DB1folder)))
 
 # See what information we have for what databases.
-DB1.summary <- Tidy_DB1_data %>%
+DB1.summary <- DB1 %>%
   group_by(Platform, Date) %>%
   summarise(Total_Usage = sum(Usage)) %>%
   spread(Date,Total_Usage)
-
-
-
 
 ###############################################################################
 # Import Journal  Usage Information____________________________________________
 ###############################################################################
 # Defining Functions to Load JR1 Data.
-load_CSV_JR1 <- function(path) { 
-  csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
-  tables <- lapply(csv_files, function(file){
+load.JR1.csv <- function(path) { 
+  csv.files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
+  tables <- lapply(csv.files, function(file){
     file %>%
       read_csv(skip=7, col_names = TRUE) %>%
       slice(-1) %>%
@@ -92,9 +90,9 @@ load_CSV_JR1 <- function(path) {
   do.call(rbind, tables)
 }
 
-load_excel_JR1 <- function(path) { 
-  excel_files <- dir(path, pattern = "*.xl*", full.names = TRUE)
-  tables <- lapply(excel_files, function(file){
+load.JR1.excel <- function(path) { 
+  excel.files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel.files, function(file){
     file %>%
       read_excel(skip=7, col_names = TRUE) %>%
       slice(-1) %>%
@@ -107,9 +105,9 @@ load_excel_JR1 <- function(path) {
 }
 
 # Creates dataframe with journal usage in a tidy format.
-Tidy_JR1_data <-unique(rbind(load_CSV_JR1(JR1folder),load_excel_JR1(JR1folder)))
+JR1 <-unique(rbind(load.JR1.csv(JR1folder),load.JR1.excel(JR1folder)))
 
-JR1.summary <- Tidy_JR1_data %>%
+JR1.summary <- JR1 %>%
   group_by(Platform, Date) %>%
   summarise(Total_Usage = sum(Usage)) %>%
   spread(Date,Total_Usage)
@@ -119,7 +117,7 @@ JR1.summary <- Tidy_JR1_data %>%
 ###############################################################################
 
 # This creates a blank template to help with the import of pricing data.
-DB_Pricing_Blank <- Tidy_DB1_data %>%
+db.price.template <- DB1 %>%
   mutate(Year = year(Date)) %>%
   distinct(Database, Publisher,Platform, Year) %>%
   mutate(Price ="",
@@ -128,22 +126,22 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
          Ordering_Site="",
          Order_Detail="Fiscal Year") %>%
   spread(Year,Price) %>%
-  write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
+  write_csv(paste(output.folder, "database.price.template.csv",sep="/"))
 
 # Imports the pricing information file.
-Raw_DB_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"),
-                           col_names = TRUE)
+db.prices.raw <- read_csv(paste(input.folder, "database.price.csv",sep="/"),col_names = TRUE)
 
 # Creates a variable to describe the pricing data information. 
 # This sets the number of descriptive columns at 7 (the rest are years)
-DB_Pricing_Desc <- 7
+db.prices.desc <- 7
 
 # Creates a tidy dataframe of just database pricing.
 # Keeps only the notes and fund information.
 # Excludes databases without pricing.
-Tidy_DB_Pricing <- Raw_DB_Pricing %>%
-  gather(Fiscal_Year, Cost, (DB_Pricing_Desc +1):(ncol(Raw_DB_Pricing))) %>%
+DB1.fin <- db.prices.raw %>%
+  gather(Fiscal_Year, Cost, (db.prices.desc +1):(ncol(db.prices.raw))) %>%
   filter(!is.na(Cost)) %>%
+  mutate(Cost = as.numeric(Cost)) %>%
   subset(select = -c(6:7))
 
 
@@ -154,19 +152,19 @@ Tidy_DB_Pricing <- Raw_DB_Pricing %>%
 # Sums the  cost of databases by fiscal year.
 # Very upper level statistical view.
 cost.overview.1 <- function(StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
     group_by(Fiscal_Year) %>%
     summarize(Total_Cost= dollar(sum(Cost))) %>%
     spread(Fiscal_Year, Total_Cost) %>%
-    write_csv(paste(output, "cost.overview.1.csv",sep="/"))
+    write_csv(paste(output.folder, "cost.overview.1.csv",sep="/"))
 }
 test = cost.overview.1(2012,2018)
 
 # Plot the cost of online resources overtime.
 cost.overview.1.graph <- function(StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
     group_by(Fiscal_Year) %>%
@@ -185,20 +183,20 @@ cost.overview.1.graph(2013,2018)
 
 # Sums the  cost of databases by fund and fiscal year.
 cost.overview.2 <- function(StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
     group_by(Fund, Fiscal_Year) %>%
     summarize(Total_Cost= sum(Cost)) %>%
     mutate(Total_Cost = dollar(Total_Cost)) %>%
     spread(Fiscal_Year, Total_Cost) %>%
-    write_csv(paste(output, "cost.overview.2.csv",sep="/"))
+    write_csv(paste(output.folder, "cost.overview.2.csv",sep="/"))
 }
 test = cost.overview.2(2012,2018)
 
 # Plot this data.
 cost.overview.2.graph <- function(StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
     group_by(Fund, Fiscal_Year) %>%
@@ -220,7 +218,7 @@ cost.overview.2.graph(2012,2018)
 # Plot this data.
 # Funds as facets.
 cost.overview.2f.graph <- function(StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
     group_by(Fund, Fiscal_Year) %>%
@@ -241,21 +239,21 @@ cost.overview.2f.graph(2012,2018)
 
 # Sums the cost of databases by fund and fiscal year.
 cost.overview.3 <- function(StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
     group_by(Fund, Fiscal_Year, Database) %>%
     summarize(Total_Cost= sum(Cost)) %>%
     mutate(Total_Cost = dollar(Total_Cost)) %>%
     spread(Fiscal_Year, Total_Cost) %>%
-    write_csv(paste(output, "cost.overview.3.csv",sep="/"))
+    write_csv(paste(output.folder, "cost.overview.3.csv",sep="/"))
 }
 test = cost.overview.3(2012,2018)
 
 # Plot this data.
 # Funds as facets.
 cost.overview.3.graph <- function(StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
     group_by(Fund, Fiscal_Year, Database) %>%
@@ -284,7 +282,7 @@ subfun.cost.diff <- function(Cost1,Cost2){
 
 # Summarize the change in cost for one database over time.
 cost.overview.4 <- function(DatabaseName,StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Database == DatabaseName) %>%
     arrange(Fiscal_Year) %>%
@@ -293,7 +291,7 @@ cost.overview.4 <- function(DatabaseName,StartYear,EndYear){
     mutate(Cost = dollar(Cost)) %>%
     filter(Fiscal_Year > StartYear) %>%
     subset(select = -c(2:5)) %>%
-    write_csv(paste(output, "cost.overview.4.csv",sep="/"))
+    write_csv(paste(output.folder, "cost.overview.4.csv",sep="/"))
 }
 test = cost.overview.4("Morningstar Investment Research Center", 2011, 2018)
 
@@ -308,7 +306,7 @@ subfun.percent.cost.diff <- function(Cost1,Cost2){
 
 # Summarize the change in cost for one database over time.
 cost.overview.5 <- function(DatabaseName,StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Database == DatabaseName) %>%
     arrange(Fiscal_Year) %>%
@@ -316,12 +314,12 @@ cost.overview.5 <- function(DatabaseName,StartYear,EndYear){
     mutate(Percent_Change = subfun.percent.cost.diff(Cost, lag(Cost))) %>%
     filter(Fiscal_Year > StartYear) %>%
     subset(select = -c(2:5)) %>%
-    write_csv(paste(output, "cost.overview.5.csv",sep="/"))
+    write_csv(paste(output.folder, "cost.overview.5.csv",sep="/"))
 }
 test = cost.overview.5("Morningstar Investment Research Center", 2012, 2018)
 
 cost.overview.6 <- function(StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     arrange(Fiscal_Year) %>%
     group_by(Database) %>%
@@ -329,27 +327,27 @@ cost.overview.6 <- function(StartYear,EndYear){
     filter(Fiscal_Year > StartYear) %>%
     subset(select = -c(2:5,7)) %>%
     spread(Fiscal_Year, Percent_Change) %>%
-    write_csv(paste(output, "cost.overview.6.csv",sep="/"))
+    write_csv(paste(output.folder, "cost.overview.6.csv",sep="/"))
 }
 test = cost.overview.6(2012, 2018)
 
 # Sums the  cost of databases by fund and fiscal year.
 cost.overview.7 <- function(StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
     group_by(Database, Fiscal_Year) %>%
     summarize(Total_Cost= sum(Cost)) %>%
     mutate(Total_Cost = dollar(Total_Cost)) %>%
     spread(Fiscal_Year, Total_Cost) %>%
-    write_csv(paste(output, "cost.overview.7.csv",sep="/"))
+    write_csv(paste(output.folder, "cost.overview.7.csv",sep="/"))
 }
 test = cost.overview.7(2010,2018)
 
 
 # Graphing database pricing.
 cost.overview.8 <- function(DatabaseName,StartYear,EndYear){
-  Tidy_DB_Pricing %>%
+  DB1.fin %>%
     filter(Database==DatabaseName) %>%
     filter(Fiscal_Year > StartYear, Fiscal_Year < EndYear) %>%
     ggplot(aes(x=Fiscal_Year, y=Cost, label=Cost)) +
@@ -366,7 +364,7 @@ cost.overview.8("Business Source Complete", 2013, 2018)
 
 # Graphing database usage.
 usage.graph.1 <- function(DatabaseName,StartYear,EndYear){
-  Tidy_DB1_data %>%
+  DB1 %>%
     filter(Database==DatabaseName) %>%
     filter(Date > StartYear, Date < EndYear) %>%
     ggplot(aes(Date, Usage)) +
@@ -379,7 +377,7 @@ usage.graph.1("Academic Search Complete", 2015, 2018)
 
 # Graphing database usage.
 usage.graph.2 <- function(DatabaseName,StartYear,EndYear){
-  Tidy_DB1_data %>%
+  DB1 %>%
     filter(Database == DatabaseName) %>%
     filter(Date > StartYear, Date < EndYear) %>%
     filter(User_Activity != "Searches-federated and automated") %>%
@@ -393,7 +391,7 @@ usage.graph.2("Business Source Complete", 2015, 2018)
 
 # Graphing database usage.
 usage.graph.3 <- function(DatabaseName,StartYear,EndYear){
-  Tidy_DB1_data %>%
+  DB1 %>%
     filter(Database == DatabaseName) %>%
     filter(Date > StartYear, Date < EndYear) %>%
     filter(User_Activity != "Searches-federated and automated") %>%
@@ -422,20 +420,21 @@ usage.graph.3("Business Source Complete", 2015, 2018)
 
 # Need to combine usage data and cost data.
 # summarized usage on the fiscal year.
-cost.per.use.usage <- Tidy_DB1_data %>%
+cost.per.use.usage <- DB1 %>%
   mutate(Year = year(Date), Month=month(Date)) %>%
   mutate(Fiscal_Year = ifelse(Month > 6, Year + 1,Year)) %>%
   group_by(Database, Publisher,Platform, User_Activity, Fiscal_Year) %>%
-  summarize(Usage = sum(Usage))
-
-
+  summarize(Usage = sum(Usage)) %>%
+  na.omit()
 
 # Transform the database pricing dataframe
-cost.per.use.cost <- select(Tidy_DB_Pricing, -c(4:5))
+cost.per.use.cost <- select(DB1.fin, -c(4:5))
 
 # Merging everything together.
 # Including everything from the usage dataframe.
 cost.per.use <- merge(cost.per.use.usage, cost.per.use.cost, all.cost.per.use.usage = TRUE)
+
+
 
 # Adds new column that calculates cost per user action.
 cost.per.use$Cost_Per_Action <- cost.per.use$Cost/cost.per.use$Usage
@@ -447,3 +446,4 @@ cost.per.use$Cost_Per_Action[!is.finite(cost.per.use$Cost_Per_Action)] <- 0
 # Makes the currency things looks nicer.
 cost.per.use$Cost <- dollar(cost.per.use$Cost)
 cost.per.use$Cost_Per_Action <- dollar(cost.per.use$Cost_Per_Action)
+
