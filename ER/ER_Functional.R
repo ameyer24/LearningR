@@ -66,11 +66,12 @@ load.DB1.excel <- function(path) {
 # Creates dataframe with Database usage in a tidy format.
 DB1 <-unique(rbind(load.DB1.csv(DB1folder),load.DB1.excel(DB1folder)))
 
-# See what information we have for what databases.
+# Get an overview of our data to make sure things imported relatively well.
 DB1.summary <- DB1 %>%
-  group_by(Platform, Date) %>%
+  group_by(Publisher, Date) %>%
   summarise(Total_Usage = sum(Usage)) %>%
-  spread(Date,Total_Usage)
+  spread(Date,Total_Usage) %>%
+  write_csv(paste(output.folder, "DB1.usage.summary.csv",sep="/"))
 
 ###############################################################################
 # Import Journal  Usage Information____________________________________________
@@ -415,7 +416,7 @@ usage.graph.3("Business Source Complete", 2015, 2018)
 
 
 ###############################################################################
-# Cost Per Use Functions ____________________________________________________
+# Cost Per Use - Set Up________________________________________________________
 ###############################################################################
 
 # Need to combine usage data and cost data.
@@ -434,8 +435,6 @@ cost.per.use.cost <- select(DB1.fin, -c(4:5))
 # Including everything from the usage dataframe.
 cost.per.use <- merge(cost.per.use.usage, cost.per.use.cost, all.cost.per.use.usage = TRUE)
 
-
-
 # Adds new column that calculates cost per user action.
 cost.per.use$Cost_Per_Action <- cost.per.use$Cost/cost.per.use$Usage
 
@@ -447,3 +446,24 @@ cost.per.use$Cost_Per_Action[!is.finite(cost.per.use$Cost_Per_Action)] <- 0
 cost.per.use$Cost <- dollar(cost.per.use$Cost)
 cost.per.use$Cost_Per_Action <- dollar(cost.per.use$Cost_Per_Action)
 
+###############################################################################
+# Cost Per Use Functions ____________________________________________________
+###############################################################################
+
+cpu.overview.11 <- function(df){
+  df %>%
+  select(-c(2:3,6:7)) %>%
+  spread(Fiscal_Year, Cost_Per_Action)
+}
+
+test <- cpu.overview.1(cost.per.use)
+
+cpu.overview.2 <- function(df){
+  df %>%
+    filter(Fiscal_Year > 2013) %>%
+    filter(User_Activity == "Result Clicks") %>%
+    select(-c(2:3,6:7)) %>%
+    spread(Fiscal_Year, Cost_Per_Action)
+}
+
+test <- cpu.overview.2(cost.per.use)
