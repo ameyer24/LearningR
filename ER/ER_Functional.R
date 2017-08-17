@@ -163,7 +163,7 @@ cost.overview.1 <- function(StartYear,EndYear){
 }
 test = cost.overview.1(2012,2018)
 
-# Plot the cost of online resources overtime.
+# Plot the total cost of online resources over time.
 cost.overview.1.graph <- function(StartYear,EndYear){
   DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
