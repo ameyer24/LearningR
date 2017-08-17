@@ -74,7 +74,7 @@ DB1.summary <- DB1 %>%
   write_csv(paste(output.folder, "DB1.usage.summary.csv",sep="/"))
 
 ###############################################################################
-# Import Journal  Usage Information____________________________________________
+# Import Journal Usage Information____________________________________________
 ###############################################################################
 # Defining Functions to Load JR1 Data.
 load.JR1.csv <- function(path) { 
