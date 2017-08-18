@@ -1,30 +1,176 @@
 ---
 title: "Electronic Resource Report"
-author: "AJM"
+author: "Andy Meyer"
 date: "August 17, 2017"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## R Markdown
+```{r Install Packages, eval=FALSE, include=FALSE}
+###############################################################################
+# Installing and Loading Packages _____________________________________________
+###############################################################################
+install.packages("tidyverse")
+install.packages("readxl")
+install.packages("xlsx")
+install.packages("zoo")
+install.packages("mosaic")
+install.packages("scales")
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# Extra libraries for rmarkdown
+install.packages("knitr")
+install.packages("kableExtra")
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
 ```
 
-## Including Plots
+```{r Load Libraries, message=FALSE, warning=FALSE}
+library(mosaic)
+library(xlsx)
+library(tidyverse)
+library(readxl)
+library(zoo)
+library(lubridate)
+library(scales)
 
-You can also embed plots, for example:
+# Extra libraries for rmarkdown.
+library(knitr)
+library(kableExtra)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r Reading Files, message=FALSE, warning=FALSE}
+###############################################################################
+# Reading the files and tidying the data ______________________________________
+###############################################################################
+
+# Setting up the folders
+input.folder <- "C:/DataScience/inputs"
+output.folder <- "C:/DataScience/outputs"
+DB1folder <- "C:/DataScience/inputs/DB1Reports"
+JR1folder <- "C:/DataScience/inputs/JR1Reports"
+```
+
+```{r Import Database Usage Information, message=FALSE, warning=FALSE}
+###############################################################################
+# Import Database Usage Information____________________________________________
+###############################################################################
+
+# Defining functions to load the data from DB1 Reports.
+load.DB1.csv <- function(path) { 
+  csv.files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
+  tables <- lapply(csv.files, function(file){
+    file %>%
+      read_csv(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage)) %>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
+  })
+  do.call(rbind, tables)
+}
+
+load.DB1.excel <- function(path) { 
+  excel.files <- dir(path, pattern = "*.xl*", full.names = TRUE)
+  tables <- lapply(excel.files, function(file){
+    file %>%
+      read_excel(skip=7, col_names = TRUE) %>%
+      subset(select = -c(5)) %>%
+      gather(Date, Usage, -c(1:4)) %>%
+      mutate(Date = as.yearmon(Date, "%b-%Y")) %>%
+      mutate(Usage = as.numeric(Usage)) %>%
+      plyr::rename(replace = c("User Activity" = "User_Activity"))
+  })
+  do.call(rbind, tables)
+}
+
+# Creates dataframe with Database usage in a tidy format.
+DB1 <-unique(rbind(load.DB1.csv(DB1folder),load.DB1.excel(DB1folder)))
+```
+
+```{r Import Cost Information, message=FALSE, warning=FALSE}
+# Imports the pricing information file.
+db.prices.raw <- read_csv(paste(input.folder, "database.price.csv",sep="/"),col_names = TRUE)
+
+# Creates a variable to describe the pricing data information. 
+# This sets the number of descriptive columns at 7 (the rest are years)
+db.prices.desc <- 7
+
+# Creates a tidy dataframe of just database pricing.
+# Keeps only the notes and fund information.
+# Excludes databases without pricing.
+DB1.fin <- db.prices.raw %>%
+  gather(Fiscal_Year, Cost, (db.prices.desc +1):(ncol(db.prices.raw))) %>%
+  filter(!is.na(Cost)) %>%
+  mutate(Cost = as.numeric(Cost)) %>%
+  subset(select = -c(6:7))
+```
+
+
+# Database Name
+
+## Cost Overview
+Looks at our expenses over the last few years.
+```{r}
+# Handles NA values and no change better.
+subfun.cost.diff <- function(Cost1,Cost2){
+  cost.diff <- ifelse(Cost2 == 0 | is.na(Cost2),
+                      0,
+                      Cost1-Cost2)
+  cost.diff <- dollar(cost.diff)
+  return(cost.diff)
+}
+
+# A sub-function to calculate the percent change in cost.
+# Handles NA values and no change better.
+subfun.percent.cost.diff <- function(Cost1,Cost2){
+  percent.cost.diff <- ifelse(Cost2 == 0 | is.na(Cost2),
+                              0,
+                              ((Cost1-Cost2)/Cost2))
+  percent.cost.diff <- percent(percent.cost.diff)
+  return(percent.cost.diff)
+}
+```
+
+
+```{r}
+# Summarize the change in cost for one database over time.
+cost.overview.4.a <- function(DatabaseName,StartYear,EndYear){
+  DB1.fin %>%
+    filter(Fiscal_Year <= EndYear) %>%
+    filter(Database == DatabaseName) %>%
+    arrange(Fiscal_Year) %>%
+    group_by(Database) %>%
+    mutate(Price_Change = subfun.cost.diff(Cost, lag(Cost))) %>%
+    mutate(Percent_Change = subfun.percent.cost.diff(Cost, lag(Cost))) %>%
+    mutate(Cost = dollar(Cost)) %>%
+    filter(Fiscal_Year > StartYear) %>%
+    subset(select = -c(1:5))
+}
+cost.overview <- cost.overview.4.a("New Testament Abstracts", 2011, 2018)
+kable(cost.overview) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+
+
+## Usage Overview
+Looking at our usage information.
+```{r}
+
+usage.table.1 <- function(DatabaseName,StartYear,EndYear){
+  DB1 %>%
+    filter(Database==DatabaseName) %>%
+    filter(Date >= StartYear, Date <= EndYear) %>%
+    spread(Date,Usage) %>%
+    subset(select = -c(2:3))
+}
+kable(usage.table.1("New Testament Abstracts", 2015, 2018))
+```
+

@@ -182,7 +182,7 @@ cost.overview.1.graph <- function(StartYear,EndYear){
 cost.overview.1.graph(2013,2018)
 
 
-# Sums the  cost of databases by fund and fiscal year.
+# Sums the cost of databases by fund and fiscal year.
 cost.overview.2 <- function(StartYear,EndYear){
   DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
@@ -363,6 +363,17 @@ cost.overview.8("Business Source Complete", 2013, 2018)
 # Usage Overivew Functions ____________________________________________________
 ###############################################################################
 
+# Returns table of usage for particular database between two years.
+usage.table.1 <- function(DatabaseName,StartYear,EndYear){
+  DB1 %>%
+    filter(Database==DatabaseName) %>%
+    filter(Date >= StartYear, Date <= EndYear) %>%
+    spread(Date,Usage) %>%
+    write_csv(paste(output.folder, "usage.table.1.csv",sep="/"))
+}
+test1 <- usage.table.1("New Testament Abstracts", 2015, 2018)
+test2 <- usage.table.1("Old Testament Abstracts", 2015, 2018)
+
 # Graphing database usage.
 usage.graph.1 <- function(DatabaseName,StartYear,EndYear){
   DB1 %>%
@@ -376,7 +387,7 @@ usage.graph.1 <- function(DatabaseName,StartYear,EndYear){
 }
 usage.graph.1("Academic Search Complete", 2015, 2018)
 
-# Graphing database usage.
+# Graphing database usage without automated searching.
 usage.graph.2 <- function(DatabaseName,StartYear,EndYear){
   DB1 %>%
     filter(Database == DatabaseName) %>%
@@ -390,7 +401,7 @@ usage.graph.2 <- function(DatabaseName,StartYear,EndYear){
 }
 usage.graph.2("Business Source Complete", 2015, 2018)
 
-# Graphing database usage.
+# Graphing database usage by academic term.
 usage.graph.3 <- function(DatabaseName,StartYear,EndYear){
   DB1 %>%
     filter(Database == DatabaseName) %>%
