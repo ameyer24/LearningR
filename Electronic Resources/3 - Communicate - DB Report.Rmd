@@ -2,11 +2,26 @@
 title: "Electronic Resource Report Template"
 author: "AJM"
 date: "August 30, 2017"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(mosaic)
+library(xlsx)
+library(tidyverse)
+library(readxl)
+library(zoo)
+library(lubridate)
+library(scales)
+
+# Setting up the folders
+input.folder <- "C:/DataScience/inputs"
+output.folder <- "C:/DataScience/outputs"
+DB1folder <- "C:/DataScience/inputs/DB1Reports"
+JR1folder <- "C:/DataScience/inputs/JR1Reports"
 ```
 
 ## R Markdown
@@ -16,7 +31,11 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r cars}
-summary(cars)
+
+source("1a - ImportTidy - DB1.R")
+
+source("2a - Transform - DBUsage.R")
+usage.sum.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
 ```
 
 ## Including Plots
