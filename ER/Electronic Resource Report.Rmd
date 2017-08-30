@@ -114,7 +114,11 @@ DB1.fin <- db.prices.raw %>%
 
 
 # Database Name
-
+```{r}
+db <- "New Testament Abstracts"
+# db
+```
+# Database is '''r db
 ## Cost Overview
 Looks at our expenses over the last few years.
 ```{r}
@@ -154,7 +158,9 @@ cost.overview.4.a <- function(DatabaseName,StartYear,EndYear){
     subset(select = -c(1:5))
 }
 cost.overview <- cost.overview.4.a("New Testament Abstracts", 2011, 2018)
-kable(cost.overview) %>%
+kable(cost.overview,
+      format = "latex",
+      col.names = c("Fiscal Year","Cost","Change in Cost","Percent Change")) %>%
   kable_styling(bootstrap_options = c("striped", "hover"))
 ```
 
@@ -171,6 +177,8 @@ usage.table.1 <- function(DatabaseName,StartYear,EndYear){
     spread(Date,Usage) %>%
     subset(select = -c(2:3))
 }
+
+
 kable(usage.table.1("New Testament Abstracts", 2015, 2018))
 ```
 

@@ -131,8 +131,7 @@ DB_Pricing_Blank <- Tidy_DB1_data %>%
   write_csv(paste(output, "DB_Pricing_Blank.csv",sep="/"))
 
 # Imports the pricing information file.
-Raw_DB_Pricing <- read_csv(paste(input, "DB_Pricing.csv",sep="/"),
-                           col_names = TRUE)
+db.prices.raw <- read_csv(paste(input.folder, "database.price.csv",sep="/"),col_names = TRUE)
 
 # Creates a variable to describe the pricing data information. 
 # This sets the number of descriptive columns at 7 (the rest are years)
@@ -141,9 +140,10 @@ DB_Pricing_Desc <- 7
 # Creates a tidy dataframe of just database pricing.
 # Keeps only the notes and fund information.
 # Excludes databases without pricing.
-Tidy_DB_Pricing <- Raw_DB_Pricing %>%
-  gather(Fiscal_Year, Cost, (DB_Pricing_Desc +1):(ncol(Raw_DB_Pricing))) %>%
+DB1.fin <- db.prices.raw %>%
+  gather(Fiscal_Year, Cost, (db.prices.desc +1):(ncol(db.prices.raw))) %>%
   filter(!is.na(Cost)) %>%
+  mutate(Cost = as.numeric(Cost)) %>%
   subset(select = -c(6:7))
 
 

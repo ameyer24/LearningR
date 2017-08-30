@@ -1,3 +1,7 @@
+###############################################################################
+# Overview_____________________________________________________________________
+###############################################################################
+
 # This script looks at electronic resources usage and pricing information.
 # It ingests DB1 and JR1 Counter Reports (Version 4)
 # It allows libraries to import pricing information.
@@ -135,12 +139,15 @@ db.prices.raw <- read_csv(paste(input.folder, "database.price.csv",sep="/"),col_
 # Creates a variable to describe the pricing data information. 
 # This sets the number of descriptive columns at 7 (the rest are years)
 db.prices.desc <- 7
+db.prices.specs <- "8:16"
 
 # Creates a tidy dataframe of just database pricing.
 # Keeps only the notes and fund information.
 # Excludes databases without pricing.
 DB1.fin <- db.prices.raw %>%
-  gather(Fiscal_Year, Cost, (db.prices.desc +1):(ncol(db.prices.raw))) %>%
+  gather(key = Fiscal_Year,
+         value = Cost,
+         8:16) %>% # Updated to make work; would be great to abstract this!!!
   filter(!is.na(Cost)) %>%
   mutate(Cost = as.numeric(Cost)) %>%
   subset(select = -c(6:7))
@@ -150,21 +157,20 @@ DB1.fin <- db.prices.raw %>%
 # Cost Overview Functions _____________________________________________________
 ###############################################################################
 
-# Sums the  cost of databases by fiscal year.
-# Very upper level statistical view.
-cost.overview.1 <- function(StartYear,EndYear){
+# Sums the cost of databases by fiscal year.
+cost.1 <- function(StartYear,EndYear){
   DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
     group_by(Fiscal_Year) %>%
     summarize(Total_Cost= dollar(sum(Cost))) %>%
     spread(Fiscal_Year, Total_Cost) %>%
-    write_csv(paste(output.folder, "cost.overview.1.csv",sep="/"))
+    write_csv(paste(output.folder, "cost.1.csv",sep="/"))
 }
-test = cost.overview.1(2012,2018)
+test = cost.1(2012,2018)
 
-# Plot the total cost of online resources over time.
-cost.overview.1.graph <- function(StartYear,EndYear){
+# Plot the total cost of databases by fiscal year.
+cost.1.graph <- function(StartYear,EndYear){
   DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
@@ -179,11 +185,10 @@ cost.overview.1.graph <- function(StartYear,EndYear){
     ylab("Cost") +
     scale_y_continuous(labels = scales::dollar)
 }
-cost.overview.1.graph(2013,2018)
-
+cost.1.graph(2013,2018)
 
 # Sums the cost of databases by fund and fiscal year.
-cost.overview.2 <- function(StartYear,EndYear){
+cost.2 <- function(StartYear,EndYear){
   DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
@@ -191,12 +196,12 @@ cost.overview.2 <- function(StartYear,EndYear){
     summarize(Total_Cost= sum(Cost)) %>%
     mutate(Total_Cost = dollar(Total_Cost)) %>%
     spread(Fiscal_Year, Total_Cost) %>%
-    write_csv(paste(output.folder, "cost.overview.2.csv",sep="/"))
+    write_csv(paste(output.folder, "cost.2.csv",sep="/"))
 }
-test = cost.overview.2(2012,2018)
+test = cost.2(2012,2018)
 
-# Plot this data.
-cost.overview.2.graph <- function(StartYear,EndYear){
+# Plot the cost of databases by fund and fiscal year.
+cost.2.graph <- function(StartYear,EndYear){
   DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
@@ -214,11 +219,11 @@ cost.overview.2.graph <- function(StartYear,EndYear){
     ylab("Cost") +
     scale_y_continuous(labels = scales::dollar)
 }
-cost.overview.2.graph(2012,2018)
+cost.2.graph(2012,2018)
 
-# Plot this data.
-# Funds as facets.
-cost.overview.2f.graph <- function(StartYear,EndYear){
+# Plot the cost of databases by fund and fiscal year.
+# Funds act as different facets to the graph.
+cost.2.graph.a <- function(StartYear,EndYear){
   DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
@@ -236,10 +241,10 @@ cost.overview.2f.graph <- function(StartYear,EndYear){
     ylab("Cost") +
     scale_y_continuous(labels = scales::dollar)
 }
-cost.overview.2f.graph(2012,2018)
+cost.2.graph.a(2012,2018)
 
 # Sums the cost of databases by fund and fiscal year.
-cost.overview.3 <- function(StartYear,EndYear){
+cost.3 <- function(StartYear,EndYear){
   DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
@@ -247,13 +252,13 @@ cost.overview.3 <- function(StartYear,EndYear){
     summarize(Total_Cost= sum(Cost)) %>%
     mutate(Total_Cost = dollar(Total_Cost)) %>%
     spread(Fiscal_Year, Total_Cost) %>%
-    write_csv(paste(output.folder, "cost.overview.3.csv",sep="/"))
+    write_csv(paste(output.folder, "cost.3.csv",sep="/"))
 }
-test = cost.overview.3(2012,2018)
+test = cost.3(2011,2018)
 
-# Plot this data.
+# Plot the cost of databases by fund and fiscal year.
 # Funds as facets.
-cost.overview.3.graph <- function(StartYear,EndYear){
+cost.3.graph <- function(StartYear,EndYear){
   DB1.fin %>%
     filter(Fiscal_Year < EndYear) %>%
     filter(Fiscal_Year > StartYear) %>%
@@ -269,41 +274,46 @@ cost.overview.3.graph <- function(StartYear,EndYear){
     ylab("Cost") +
     scale_y_continuous(labels = scales::dollar)
 }
-cost.overview.3.graph(2012,2018)
-
+cost.3.graph(2012,2018)
+#############################################################################################################################################################################################################################################
 # A sub-function to calculate the change in price.
+
 # Handles NA values and no change better.
 subfun.cost.diff <- function(Cost1,Cost2){
   cost.diff <- ifelse(Cost2 == 0 | is.na(Cost2),
-                      dollar(Cost1),
-                      dollar(Cost1-Cost2))
+                      0,
+                      Cost1-Cost2)
+  cost.diff <- dollar(cost.diff)
   return(cost.diff)
 }
-
-
-# Summarize the change in cost for one database over time.
-cost.overview.4 <- function(DatabaseName,StartYear,EndYear){
-  DB1.fin %>%
-    filter(Fiscal_Year < EndYear) %>%
-    filter(Database == DatabaseName) %>%
-    arrange(Fiscal_Year) %>%
-    group_by(Database) %>%
-    mutate(Change_In_Price = subfun.cost.diff(Cost, lag(Cost))) %>%
-    mutate(Cost = dollar(Cost)) %>%
-    filter(Fiscal_Year > StartYear) %>%
-    subset(select = -c(2:5)) %>%
-    write_csv(paste(output.folder, "cost.overview.4.csv",sep="/"))
-}
-test = cost.overview.4("Morningstar Investment Research Center", 2011, 2018)
 
 # A sub-function to calculate the percent change in cost.
 # Handles NA values and no change better.
 subfun.percent.cost.diff <- function(Cost1,Cost2){
   percent.cost.diff <- ifelse(Cost2 == 0 | is.na(Cost2),
-                              percent(0),
-                              percent((Cost1-Cost2)/Cost2))
+                              0,
+                              ((Cost1-Cost2)/Cost2))
+  percent.cost.diff <- percent(percent.cost.diff)
   return(percent.cost.diff)
 }
+#############################################################################################################################################################################################################################################
+
+# Summarize the change in cost for one database over time.
+cost.4 <- function(DatabaseName,StartYear,EndYear){
+  DB1.fin %>%
+    filter(Fiscal_Year <= EndYear) %>%
+    filter(Database == DatabaseName) %>%
+    arrange(Fiscal_Year) %>%
+    group_by(Database) %>%
+    mutate(Price_Change = subfun.cost.diff(Cost, lag(Cost))) %>%
+    mutate(Percent_Change = subfun.percent.cost.diff(Cost, lag(Cost))) %>%
+    mutate(Cost = dollar(Cost)) %>%
+    filter(Fiscal_Year > StartYear) %>%
+    subset(select = -c(2:5)) %>%
+    write_csv(paste(output.folder, "cost.4.csv",sep="/"))
+}
+test = cost.4("New Testament Abstracts", 2011, 2018)
+
 
 # Summarize the change in cost for one database over time.
 cost.overview.5 <- function(DatabaseName,StartYear,EndYear){
@@ -317,7 +327,7 @@ cost.overview.5 <- function(DatabaseName,StartYear,EndYear){
     subset(select = -c(2:5)) %>%
     write_csv(paste(output.folder, "cost.overview.5.csv",sep="/"))
 }
-test = cost.overview.5("Morningstar Investment Research Center", 2012, 2018)
+test = cost.overview.5("New Testament Abstracts", 2012, 2018)
 
 cost.overview.6 <- function(StartYear,EndYear){
   DB1.fin %>%
