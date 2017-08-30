@@ -12,7 +12,6 @@ usage.select.database <- function(DatabaseName,StartYear,EndYear){
     return()
 }
 
-
 # Graphing database usage.
 usage.graph.database <- function(DatabaseName,StartYear,EndYear){
   DB1 %>%
@@ -63,9 +62,9 @@ usage.graph.database.academic.term <- function(DatabaseName,StartYear,EndYear){
     filter(User_Activity != "Searches-federated and automated") %>%
     mutate(Year = year(Date), Month=month(Date)) %>%
     mutate(Academic_Term = derivedFactor(
-      "S1 (Spring)" = (Month==1 | Month==2 | Month==3 | Month==4),
-      "S2 (Summer)" = (Month==5 | Month==6 | Month==7 | Month==8),
-      "S3 (Fall)" = (Month==9 | Month==10 | Month==11 | Month==12)
+      "Spring" = (Month==1 | Month==2  | Month==3  | Month==4),
+      "Summer" = (Month==5 | Month==6  | Month==7  | Month==8),
+      "Fall"   = (Month==9 | Month==10 | Month==11 | Month==12)
     )) %>%
     mutate(Academic_Year = paste(Year, Academic_Term, sep=" "))%>%
     group_by(Database, Publisher, Platform, User_Activity, Academic_Year) %>%

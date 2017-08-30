@@ -1,5 +1,5 @@
 ---
-title: "Electronic Resource Report Template"
+title: "Electronic Resource Report"
 author: "AJM"
 date: "August 30, 2017"
 output:
@@ -8,7 +8,10 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+	message = FALSE,
+	warning = FALSE
+)
 library(mosaic)
 library(xlsx)
 library(tidyverse)
@@ -24,26 +27,22 @@ DB1folder <- "C:/DataScience/inputs/DB1Reports"
 JR1folder <- "C:/DataScience/inputs/JR1Reports"
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-
+```{r Data Import, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 source("1a - ImportTidy - DB1.R")
+```
+## Database Usage
+
+```{r Database Usage, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 
 source("2a - Transform - DBUsage.R")
-usage.sum.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
+test <- usage.sum.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
+
+
+print(test)
+usage.graph.database.academic.term("Communication & Mass Media Complete", 2014, 2018)
 ```
 
-## Including Plots
+## Financial Information
 
-You can also embed plots, for example:
+## Cost Per Use
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
