@@ -5,7 +5,7 @@
 # This creates a blank template to help with the import of pricing data.
 db.price.template <- DB1 %>%
   mutate(Year = year(Date)) %>%
-  distinct(Database, Publisher,Platform, Year) %>%
+  distinct(Database, Publisher, Platform, Year) %>%
   mutate(Price ="",
          Notes="",
          Fund="",
@@ -20,7 +20,6 @@ db.prices.raw <- read_csv(paste(input.folder, "database.price.csv",sep="/"),col_
 # Creates a variable to describe the pricing data information. 
 # This sets the number of descriptive columns at 7 (the rest are years)
 db.prices.desc <- 7
-db.prices.specs <- "8:16"
 
 # Creates a tidy dataframe of just database pricing.
 # Keeps only the notes and fund information.
