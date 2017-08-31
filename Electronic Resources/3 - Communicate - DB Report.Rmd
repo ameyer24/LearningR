@@ -19,6 +19,7 @@ library(readxl)
 library(zoo)
 library(lubridate)
 library(scales)
+library(knitr)
 
 # Setting up the folders
 input.folder <- "C:/DataScience/inputs"
@@ -35,12 +36,20 @@ source("1a - ImportTidy - DB1.R")
 ```{r Database Usage, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
 
 source("2a - Transform - DBUsage.R")
-test <- usage.sum.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
+master.usage.table <- usage.sum.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
 
-
-print(test)
-usage.graph.database.academic.term("Communication & Mass Media Complete", 2014, 2018)
 ```
+## Table
+```{r}
+kable(master.usage.table)
+```
+
+### Graph
+
+```{r}
+usage.graph.database("Communication & Mass Media Complete", 2014, 2018)
+```
+
 
 ## Financial Information
 
