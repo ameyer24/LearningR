@@ -29,25 +29,37 @@ DB1folder <- "C:/DataScience/inputs/DB1Reports"
 JR1folder <- "C:/DataScience/inputs/JR1Reports"
 ```
 
-```{r Data Import, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+```{r Data and Function Import, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# I could probably clean this up to import everything...
 source("1a - ImportTidy - DB1.R")
+source("2a - Transform - DBUsage.R")
+source("1c - ImportTidy - Financials.R")
+source("2b2 - Transform - Financial Details.R")
+source("2c - Transform - DBCostPerUse.R")
 ```
+
+```{r Database Set Up}
+# Defining Variables to make life easier throughout this report.
+Database = "Communication & Mass Media Complete"
+StartYear = 2014
+EndYear = 2018
+```
+
+This is a report for `r Database` from `r StartYear` to `r EndYear`.
 
 ## Database Usage
 
 ```{r Database Usage Set Up, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
-# Defines source of database usage data and functions.
-source("2a - Transform - DBUsage.R")
-
 # Creates master of usage (by academic term)
 # Planning on filtering this data in each subsection.
-master.usage.table <- usage.sum.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
+master.usage.table <- usage.sum.database.acad.term(Database, StartYear, EndYear)
 ```
 This section of the report shows database usage by looking at Counter Reports.
 
 ```{r Overview Graph}
 # Put the database overview graph here.
-usage.graph.database("Communication & Mass Media Complete", 2014, 2018)
+usage.graph.database(Database, StartYear, EndYear)
+
 ```
 
 ### Database Usage - Record Views
@@ -61,36 +73,27 @@ kable(record.views)
 ```
 
 ```{r}
-usage.graph.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
+usage.graph.database.acad.term(Database, StartYear, EndYear)
 ```
 
 \newpage
 ## Financial Information
-```{r Database Financial Set Up, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
-# Defines source of database usage data and functions.
-source("1c - ImportTidy - Financials.R")
-source("2b2 - Transform - Financial Details.R")
-```
 
 ```{r}
-kable(cost.database.change("Communication & Mass Media Complete", 2014, 2018))
+kable(cost.database.change(Database, StartYear, EndYear))
 ```
 
 
 ```{r}
 # Cost Graph
-cost.database.graph("Communication & Mass Media Complete", 2014, 2018)
+cost.database.graph(Database, StartYear, EndYear)
 ```
 
 \newpage
 ## Cost Per Use
-```{r Cost Per Use Set Up, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
-# Defines source of cost per use data and functions.
-source("2c - Transform - DBCostPerUse.R")
-```
 
 ```{r}
-cpu.database.graph("Communication & Mass Media Complete", 2014, 2018)
+cpu.database.graph(Database, StartYear, EndYear)
 ```
 
 
