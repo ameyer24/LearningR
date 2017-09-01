@@ -50,7 +50,7 @@ This section of the report shows database usage by looking at Counter Reports.
 usage.graph.database("Communication & Mass Media Complete", 2014, 2018)
 ```
 
-### Record Views
+### Database Usage - Record Views
 ```{r}
 record.views <- master.usage.table %>%
   filter(User_Activity == "Record Views") %>%
@@ -64,8 +64,33 @@ kable(record.views)
 usage.graph.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
 ```
 
-
+\newpage
 ## Financial Information
+```{r Database Financial Set Up, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# Defines source of database usage data and functions.
+source("1c - ImportTidy - Financials.R")
+source("2b2 - Transform - Financial Details.R")
+```
 
+```{r}
+kable(cost.database.change("Communication & Mass Media Complete", 2014, 2018))
+```
+
+
+```{r}
+# Cost Graph
+cost.database.graph("Communication & Mass Media Complete", 2014, 2018)
+```
+
+\newpage
 ## Cost Per Use
+```{r Cost Per Use Set Up, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# Defines source of cost per use data and functions.
+source("2c - Transform - DBCostPerUse.R")
+```
+
+```{r}
+cpu.database.graph("Communication & Mass Media Complete", 2014, 2018)
+```
+
 

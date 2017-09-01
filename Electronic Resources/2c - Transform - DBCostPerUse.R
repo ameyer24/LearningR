@@ -2,6 +2,8 @@
 # Cost Per Use - Set Up________________________________________________________
 ###############################################################################
 
+## Rework this as a function?!
+
 # Need to combine usage data and cost data.
 # summarized usage on the fiscal year.
 cost.per.use.usage <- DB1 %>%
@@ -25,28 +27,53 @@ cost.per.use$Cost_Per_Action <- cost.per.use$Cost/cost.per.use$Usage
 # This solves the NaN and Inf problems introduced in the last step.
 cost.per.use$Cost_Per_Action[!is.finite(cost.per.use$Cost_Per_Action)] <- 0
 
-# Makes the currency things looks nicer.
-cost.per.use$Cost <- dollar(cost.per.use$Cost)
-cost.per.use$Cost_Per_Action <- dollar(cost.per.use$Cost_Per_Action)
+# # Makes the currency things looks nicer.
+# cost.per.use$Cost <- dollar(cost.per.use$Cost)
+# cost.per.use$Cost_Per_Action <- dollar(cost.per.use$Cost_Per_Action)
 
 ###############################################################################
-# Cost Per Use Functions ____________________________________________________
+# Cost Per Use - Overview Functions ___________________________________________
 ###############################################################################
 
-cpu.overview.11 <- function(df){
+cpu.overview.1 <- function(df){
   df %>%
     select(-c(2:3,6:7)) %>%
+    mutate(Cost_Per_Action = dollar(Cost_Per_Action)) %>%
     spread(Fiscal_Year, Cost_Per_Action)
 }
 
 test <- cpu.overview.1(cost.per.use)
 
-cpu.overview.2 <- function(df){
-  df %>%
-    filter(Fiscal_Year > 2013) %>%
-    filter(User_Activity == "Result Clicks") %>%
+###############################################################################
+# Cost Per Use - Detailed Functions ___________________________________________
+###############################################################################
+
+# Calculates the cost per use for a specific database over a range of time.
+# Returns a table.
+cpu.database <- function(DatabaseName,StartYear,EndYear){
+  cost.per.use %>%
+    filter(Database == DatabaseName) %>%
+    filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
+    #filter(User_Activity == "Result Clicks") %>%
     select(-c(2:3,6:7)) %>%
+    mutate(Cost_Per_Action = dollar(Cost_Per_Action)) %>%
     spread(Fiscal_Year, Cost_Per_Action)
 }
 
-test <- cpu.overview.2(cost.per.use)
+test <- cpu.database("Communication & Mass Media Complete", 2014, 2018)
+
+cpu.database.graph <- function(DatabaseName,StartYear,EndYear){
+  cost.per.use %>%
+    filter(Database == DatabaseName) %>%
+    filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
+    #filter(User_Activity == "Result Clicks") %>%
+    ggplot(aes(x = Fiscal_Year, y = Cost_Per_Action, group=1)) +
+    geom_point() +
+    geom_line() +
+    scale_y_continuous(labels=dollar) +
+    facet_grid(User_Activity ~ ., scales = "free") +
+    ggtitle(paste(DatabaseName)) +
+    xlab("Fiscal Year") +
+    ylab("Cost per Action")
+}
+cpu.database.graph("Communication & Mass Media Complete", 2014, 2018)
