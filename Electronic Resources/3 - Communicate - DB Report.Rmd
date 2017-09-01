@@ -9,6 +9,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
+  echo = FALSE,
 	message = FALSE,
 	warning = FALSE
 )
@@ -31,23 +32,36 @@ JR1folder <- "C:/DataScience/inputs/JR1Reports"
 ```{r Data Import, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 source("1a - ImportTidy - DB1.R")
 ```
+
 ## Database Usage
 
-```{r Database Usage, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
-
+```{r Database Usage Set Up, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+# Defines source of database usage data and functions.
 source("2a - Transform - DBUsage.R")
+
+# Creates master of usage (by academic term)
+# Planning on filtering this data in each subsection.
 master.usage.table <- usage.sum.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
-
 ```
-## Table
-```{r}
-kable(master.usage.table)
-```
+This section of the report shows database usage by looking at Counter Reports.
 
-### Graph
-
-```{r}
+```{r Overview Graph}
+# Put the database overview graph here.
 usage.graph.database("Communication & Mass Media Complete", 2014, 2018)
+```
+
+### Record Views
+```{r}
+record.views <- master.usage.table %>%
+  filter(User_Activity == "Record Views") %>%
+  ungroup() %>%
+  select(-Database)
+
+kable(record.views)
+```
+
+```{r}
+usage.graph.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
 ```
 
 

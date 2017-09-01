@@ -17,25 +17,14 @@ usage.graph.database <- function(DatabaseName,StartYear,EndYear){
   DB1 %>%
     filter(Database==DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
+    filter(User_Activity != "Searches-federated and automated") %>%
     ggplot(aes(Date, Usage)) +
     geom_line() +
     geom_smooth(span=0.7) +
     scale_x_yearmon() +
     facet_grid(User_Activity ~ ., scales = "free")
 }
-
-# Graphing database usage without automated searching.
-usage.graph.database.2 <-function(DatabaseName,StartYear,EndYear) {
-  DB1 %>%
-    filter(Database == DatabaseName) %>%
-    filter(Date >= StartYear, Date <= EndYear) %>%
-    filter(User_Activity != "Searches-federated and automated") %>%
-    ggplot(aes(Date, Usage)) +
-    geom_line() +
-    geom_smooth(span=0.7) +
-    scale_x_yearmon() +
-    facet_grid(User_Activity ~ .)
-}
+usage.graph.database("Communication & Mass Media Complete", 2014, 2018)
 
 # Sums database usage by academic term.
 usage.sum.database.acad.term <- function(DatabaseName,StartYear,EndYear){
@@ -56,7 +45,7 @@ test1 <- usage.sum.database.acad.term("Communication & Mass Media Complete", 201
 
 
 # Graphs database usage based on academic term.
-usage.graph.database <- function(DatabaseName,StartYear,EndYear){
+usage.graph.database.acad.term <- function(DatabaseName,StartYear,EndYear){
   DB1 %>%
     filter(Database == DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
@@ -74,5 +63,5 @@ usage.graph.database <- function(DatabaseName,StartYear,EndYear){
              stat="identity",
              position = position_dodge())
 }
-usage.graph.database("Communication & Mass Media Complete", 2014, 2018)
+usage.graph.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
 
