@@ -15,6 +15,7 @@ cost.database.change <- function(DatabaseName,StartYear,EndYear){
     filter(Fiscal_Year >= StartYear) %>%
     subset(select = -c(2:5))
 }
+
 test = cost.database.change("New Testament Abstracts", 2011, 2018)
 
 
@@ -26,7 +27,6 @@ cost.database.graph <- function(DatabaseName,StartYear,EndYear){
     ggplot(aes(x = Fiscal_Year, y = Cost)) +
     geom_bar(stat = "identity", fill = "darkgreen") +
     scale_y_continuous(labels=dollar) +
-    ggtitle(paste(DatabaseName)) +
     xlab("Fiscal Year") +
     ylab("Cost of Subscription")
 }

@@ -27,6 +27,9 @@ cost.per.use$Cost_Per_Action <- cost.per.use$Cost/cost.per.use$Usage
 # This solves the NaN and Inf problems introduced in the last step.
 cost.per.use$Cost_Per_Action[!is.finite(cost.per.use$Cost_Per_Action)] <- 0
 
+# Removes old data to keep everything nice and neat
+rm(cost.per.use.usage, cost.per.use.cost)
+
 ###############################################################################
 # Cost Per Use - Overview Functions ___________________________________________
 ###############################################################################
@@ -38,7 +41,7 @@ cpu.overview.1 <- function(df){
     spread(Fiscal_Year, Cost_Per_Action)
 }
 
-test <- cpu.overview.1(cost.per.use)
+# test <- cpu.overview.1(cost.per.use)
 
 ###############################################################################
 # Cost Per Use - Detailed Functions ___________________________________________
@@ -51,15 +54,15 @@ cpu.database <- function(DatabaseName,
                          EndYear,
                          Action = all.actions){
   cost.per.use %>%
-    filter(Database == DatabaseName) %>%
     filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
+    filter(Database %in% DatabaseName) %>%
     filter(User_Activity %in% Action) %>%
     select(-c(2:3,6:7)) %>%
     mutate(Cost_Per_Action = dollar(Cost_Per_Action)) %>%
     spread(Fiscal_Year, Cost_Per_Action)
 }
 
-test <- cpu.database("Communication & Mass Media Complete", 2014, 2018)
+test <- cpu.database(c("Communication & Mass Media Complete","Literary Reference Center"), 2014, 2018)
 test <- cpu.database("Communication & Mass Media Complete", 2014, 2018, "Record Views")
 
 
@@ -82,5 +85,5 @@ cpu.database.graph <- function(DatabaseName,
     ylab("Cost per Action")
 }
 
-cpu.database.graph("Communication & Mass Media Complete", 2014, 2018, "Record Views")
-cpu.database.graph("Communication & Mass Media Complete", 2014, 2018)
+# cpu.database.graph("Communication & Mass Media Complete", 2014, 2018, "Record Views")
+# cpu.database.graph("Communication & Mass Media Complete", 2014, 2018)

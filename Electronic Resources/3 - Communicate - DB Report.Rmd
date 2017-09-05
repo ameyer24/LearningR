@@ -103,5 +103,6 @@ kable(cpu.database(Database, StartYear, EndYear, Action))
 cpu.database.graph(Database, StartYear, EndYear, Action)
 
 ```
+test
 
 

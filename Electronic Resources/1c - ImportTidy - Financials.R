@@ -31,3 +31,6 @@ DB1.fin <- db.prices.raw %>%
   filter(!is.na(Cost)) %>%
   mutate(Cost = as.numeric(Cost)) %>%
   subset(select = -c(6:7))
+
+# Removes old data to keep everything nice and neat
+rm(db.price.template, db.prices.desc, db.prices.raw)

@@ -34,14 +34,17 @@ load.DB1.excel <- function(path) {
 # Creates dataframe with Database usage in a tidy format.
 DB1 <-unique(rbind(load.DB1.csv(DB1folder),load.DB1.excel(DB1folder)))
 
+# Create a variable with all user actions
+# Need this for later functions to function
+all.actions = unique(DB1$User_Activity)
+
 ## Add some more data quality control steps here?
 
-# Get an overview of our data to make sure things imported relatively well.
-DB1.summary <- DB1 %>%
-  group_by(Publisher, Date) %>%
-  summarise(Total_Usage = sum(Usage)) %>%
-  spread(Date,Total_Usage) %>%
-  write_csv(paste(output.folder, "DB1.usage.summary.csv",sep="/"))
+# # Get an overview of our data to make sure things imported relatively well.
+# DB1.summary <- DB1 %>%
+#   group_by(Publisher, Date) %>%
+#   summarise(Total_Usage = sum(Usage)) %>%
+#   spread(Date,Total_Usage) %>%
+#   write_csv(paste(output.folder, "DB1.usage.summary.csv",sep="/"))
 
-# Create a variable with all user actions
-all.actions = unique(DB1$User_Activity)
+
