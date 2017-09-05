@@ -32,5 +32,8 @@ DB1.fin <- db.prices.raw %>%
   mutate(Cost = as.numeric(Cost)) %>%
   subset(select = -c(6:7))
 
+# Create
+all.funds = unique(DB1.fin$Fund)
+
 # Removes old data to keep everything nice and neat
 rm(db.price.template, db.prices.desc, db.prices.raw)
