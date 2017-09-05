@@ -62,27 +62,9 @@ cpu.database <- function(DatabaseName,
 test <- cpu.database("Communication & Mass Media Complete", 2014, 2018)
 test <- cpu.database("Communication & Mass Media Complete", 2014, 2018, "Record Views")
 
-cpu.database.graph <- function(DatabaseName,StartYear,EndYear){
-  cost.per.use %>%
-    filter(Database == DatabaseName) %>%
-    filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
-    #filter(User_Activity == "Result Clicks") %>%
-    ggplot(aes(x = Fiscal_Year, y = Cost_Per_Action, group=1)) +
-    geom_point() +
-    geom_line() +
-    scale_y_continuous(labels=dollar) +
-    facet_grid(User_Activity ~ ., scales = "free") +
-    ggtitle(paste(DatabaseName)) +
-    xlab("Fiscal Year") +
-    ylab("Cost per Action")
-}
-cpu.database.graph("Communication & Mass Media Complete", 2014, 2018)
 
-## Testing Grounds
-# Create a variable with all user actions
-all.actions = unique(DB1$User_Activity)
 # Set that as the default in case no action is specified.
-cpu.database.graph2 <- function(DatabaseName,
+cpu.database.graph <- function(DatabaseName,
                                 StartYear,
                                 EndYear,
                                 Action = all.actions){
@@ -100,5 +82,5 @@ cpu.database.graph2 <- function(DatabaseName,
     ylab("Cost per Action")
 }
 
-cpu.database.graph2("Communication & Mass Media Complete", 2014, 2018, "Record Views")
-cpu.database.graph2("Communication & Mass Media Complete", 2014, 2018)
+cpu.database.graph("Communication & Mass Media Complete", 2014, 2018, "Record Views")
+cpu.database.graph("Communication & Mass Media Complete", 2014, 2018)

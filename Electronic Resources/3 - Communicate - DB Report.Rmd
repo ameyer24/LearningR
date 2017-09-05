@@ -47,53 +47,44 @@ EndYear = 2018
 
 This is a report for `r Database` from `r StartYear` to `r EndYear`.
 
-## Database Usage
-
-```{r Database Usage Set Up, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
-# Creates master of usage (by academic term)
-# Planning on filtering this data in each subsection.
-master.usage.table <- usage.sum.database.acad.term(Database, StartYear, EndYear)
-```
-This section of the report shows database usage by looking at Counter Reports.
-
-```{r Overview Graph}
-# Put the database overview graph here.
-usage.graph.database(Database, StartYear, EndYear)
-
-```
-
-### Database Usage - Record Views
-```{r}
-record.views <- master.usage.table %>%
-  filter(User_Activity == "Record Views") %>%
-  ungroup() %>%
-  select(-Database)
-
-kable(record.views)
-```
-
-```{r}
-usage.graph.database.acad.term(Database, StartYear, EndYear)
-```
-
-\newpage
 ## Financial Information
 
 ```{r}
 kable(cost.database.change(Database, StartYear, EndYear))
 ```
 
-
 ```{r}
-# Cost Graph
 cost.database.graph(Database, StartYear, EndYear)
 ```
 
 \newpage
-## Cost Per Use
+## Database Usage
 
-```{r}
-cpu.database.graph(Database, StartYear, EndYear)
+This section of the report shows database usage by looking at Counter Reports. 
+
+```{r Overview Graph}
+
+usage.graph.database(Database, StartYear, EndYear)
+
 ```
 
+
+\newpage
+### Database Usage - Record Views
+
+
+```{r}
+Action = "Record Views"
+kable(usage.sum.database.acad.term(Database, StartYear, EndYear, Action))
+usage.graph.database.acad.term(Database, StartYear, EndYear, Action)
+```
+
+Cost per use information.
+
+```{r}
+
+kable(cpu.database(Database, StartYear, EndYear, Action))
+cpu.database.graph(Database, StartYear, EndYear, Action)
+
+```
 

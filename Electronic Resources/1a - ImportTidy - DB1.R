@@ -42,3 +42,6 @@ DB1.summary <- DB1 %>%
   summarise(Total_Usage = sum(Usage)) %>%
   spread(Date,Total_Usage) %>%
   write_csv(paste(output.folder, "DB1.usage.summary.csv",sep="/"))
+
+# Create a variable with all user actions
+all.actions = unique(DB1$User_Activity)
