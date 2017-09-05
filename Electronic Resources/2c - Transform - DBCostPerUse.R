@@ -27,10 +27,6 @@ cost.per.use$Cost_Per_Action <- cost.per.use$Cost/cost.per.use$Usage
 # This solves the NaN and Inf problems introduced in the last step.
 cost.per.use$Cost_Per_Action[!is.finite(cost.per.use$Cost_Per_Action)] <- 0
 
-# # Makes the currency things looks nicer.
-# cost.per.use$Cost <- dollar(cost.per.use$Cost)
-# cost.per.use$Cost_Per_Action <- dollar(cost.per.use$Cost_Per_Action)
-
 ###############################################################################
 # Cost Per Use - Overview Functions ___________________________________________
 ###############################################################################
@@ -50,17 +46,21 @@ test <- cpu.overview.1(cost.per.use)
 
 # Calculates the cost per use for a specific database over a range of time.
 # Returns a table.
-cpu.database <- function(DatabaseName,StartYear,EndYear){
+cpu.database <- function(DatabaseName,
+                         StartYear,
+                         EndYear,
+                         Action = all.actions){
   cost.per.use %>%
     filter(Database == DatabaseName) %>%
     filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
-    #filter(User_Activity == "Result Clicks") %>%
+    filter(User_Activity %in% Action) %>%
     select(-c(2:3,6:7)) %>%
     mutate(Cost_Per_Action = dollar(Cost_Per_Action)) %>%
     spread(Fiscal_Year, Cost_Per_Action)
 }
 
 test <- cpu.database("Communication & Mass Media Complete", 2014, 2018)
+test <- cpu.database("Communication & Mass Media Complete", 2014, 2018, "Record Views")
 
 cpu.database.graph <- function(DatabaseName,StartYear,EndYear){
   cost.per.use %>%
@@ -80,7 +80,7 @@ cpu.database.graph("Communication & Mass Media Complete", 2014, 2018)
 
 ## Testing Grounds
 # Create a variable with all user actions
-all.actions = c("Result Clicks","Record Views")
+all.actions = unique(DB1$User_Activity)
 # Set that as the default in case no action is specified.
 cpu.database.graph2 <- function(DatabaseName,
                                 StartYear,
