@@ -2,35 +2,11 @@
 # Cost Overview Functions _____________________________________________________
 ###############################################################################
 
-
-################################################################################
-# A sub-function to calculate the change in price.
-
-# Handles NA values and no change better.
-subfun.cost.diff <- function(Cost1,Cost2){
-  cost.diff <- ifelse(Cost2 == 0 | is.na(Cost2),
-                      0,
-                      Cost1-Cost2)
-  cost.diff <- dollar(cost.diff)
-  return(cost.diff)
-}
-
-# A sub-function to calculate the percent change in cost.
-# Handles NA values and no change better.
-subfun.percent.cost.diff <- function(Cost1,Cost2){
-  percent.cost.diff <- ifelse(Cost2 == 0 | is.na(Cost2),
-                              0,
-                              ((Cost1-Cost2)/Cost2))
-  percent.cost.diff <- percent(percent.cost.diff)
-  return(percent.cost.diff)
-}
-################################################################################
-
 # Summarize the change in cost for one database over time.
 cost.database.change <- function(DatabaseName,StartYear,EndYear){
   DB1.fin %>%
-    filter(Fiscal_Year <= EndYear) %>%
     filter(Database == DatabaseName) %>%
+    filter(Fiscal_Year <= EndYear) %>%
     arrange(Fiscal_Year) %>%
     group_by(Database) %>%
     mutate(Price_Change = subfun.cost.diff(Cost, lag(Cost))) %>%
@@ -49,6 +25,7 @@ cost.database.graph <- function(DatabaseName,StartYear,EndYear){
     filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
     ggplot(aes(x = Fiscal_Year, y = Cost)) +
     geom_bar(stat = "identity", fill = "darkgreen") +
+    scale_y_continuous(labels=dollar) +
     ggtitle(paste(DatabaseName)) +
     xlab("Fiscal Year") +
     ylab("Cost of Subscription")

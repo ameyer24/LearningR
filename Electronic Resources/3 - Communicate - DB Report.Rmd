@@ -7,39 +7,31 @@ output:
   html_document: default
 ---
 
-```{r setup, include=FALSE}
+
+```{r Data and Function Import, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
 knitr::opts_chunk$set(
   echo = FALSE,
 	message = FALSE,
-	warning = FALSE
-)
-library(mosaic)
-library(xlsx)
-library(tidyverse)
-library(readxl)
-library(zoo)
-library(lubridate)
-library(scales)
-library(knitr)
+	warning = FALSE)
 
-# Setting up the folders
-input.folder <- "C:/DataScience/inputs"
-output.folder <- "C:/DataScience/outputs"
-DB1folder <- "C:/DataScience/inputs/DB1Reports"
-JR1folder <- "C:/DataScience/inputs/JR1Reports"
-```
+# # I could probably clean this up to import everything...
+# source.files <- list.files(pattern="*.R")
+# sapply(source.files, source, .GlobalEnv)
 
-```{r Data and Function Import, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 # I could probably clean this up to import everything...
+source("0 - Setup.R")
 source("1a - ImportTidy - DB1.R")
-source("2a - Transform - DBUsage.R")
 source("1c - ImportTidy - Financials.R")
+source("2a - Transform - DBUsage.R")
+source("2b0 - Transform - Financial Subfunctions.R")
 source("2b2 - Transform - Financial Details.R")
 source("2c - Transform - DBCostPerUse.R")
+
 ```
 
 ```{r Database Set Up}
-# Defining Variables to make life easier throughout this report.
+# Defining Variables for this report.
 Database = "Communication & Mass Media Complete"
 StartYear = 2014
 EndYear = 2018
@@ -51,9 +43,6 @@ This is a report for `r Database` from `r StartYear` to `r EndYear`.
 
 ```{r}
 kable(cost.database.change(Database, StartYear, EndYear))
-```
-
-```{r}
 cost.database.graph(Database, StartYear, EndYear)
 ```
 
@@ -69,12 +58,15 @@ usage.graph.database(Database, StartYear, EndYear)
 ```
 
 
+```{r}
+Action = "Record Views"
+```
 \newpage
-### Database Usage - Record Views
+### Detailed Database Usage - `r Action`
 
 
 ```{r}
-Action = "Record Views"
+
 kable(usage.sum.database.acad.term(Database, StartYear, EndYear, Action))
 usage.graph.database.acad.term(Database, StartYear, EndYear, Action)
 ```
@@ -87,4 +79,29 @@ kable(cpu.database(Database, StartYear, EndYear, Action))
 cpu.database.graph(Database, StartYear, EndYear, Action)
 
 ```
+
+
+\newpage
+```{r}
+Action = "Regular Searches"
+```
+
+### Detailed Database Usage - `r Action`
+
+
+```{r}
+
+kable(usage.sum.database.acad.term(Database, StartYear, EndYear, Action))
+usage.graph.database.acad.term(Database, StartYear, EndYear, Action)
+```
+
+Cost per use information.
+
+```{r}
+
+kable(cpu.database(Database, StartYear, EndYear, Action))
+cpu.database.graph(Database, StartYear, EndYear, Action)
+
+```
+
 

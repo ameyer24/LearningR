@@ -1,21 +1,16 @@
 ###############################################################################
-# Overview_____________________________________________________________________
+# Installing Packages _________________________________________________________
 ###############################################################################
+# install.packages("tidyverse")
+# install.packages("readxl")
+# install.packages("xlsx")
+# install.packages("zoo")
+# install.packages("mosaic")
+# install.packages("scales")
 
-# This script looks at electronic resources usage and pricing information.
-# It ingests DB1 and JR1 Counter Reports (Version 4)
-# It allows libraries to import pricing information.
-# It then calculates cost per use and other summaries.
-
 ###############################################################################
-# Installing and Loading Packages _____________________________________________
+# Loading Packages ____________________________________________________________
 ###############################################################################
-install.packages("tidyverse")
-install.packages("readxl")
-install.packages("xlsx")
-install.packages("zoo")
-install.packages("mosaic")
-install.packages("scales")
 
 library(mosaic)
 library(xlsx)
@@ -24,6 +19,7 @@ library(readxl)
 library(zoo)
 library(lubridate)
 library(scales)
+library(knitr)
 
 ###############################################################################
 # Reading the files and tidying the data ______________________________________
