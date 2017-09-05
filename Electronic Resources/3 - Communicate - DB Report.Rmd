@@ -24,8 +24,7 @@ source("0 - Setup.R")
 source("1a - ImportTidy - DB1.R")
 source("1c - ImportTidy - Financials.R")
 source("2a - Transform - DBUsage.R")
-source("2b0 - Transform - Financial Subfunctions.R")
-source("2b2 - Transform - Financial Details.R")
+source("2b - Transform - Financials.R")
 source("2c - Transform - DBCostPerUse.R")
 
 ```

@@ -72,7 +72,7 @@ cpu.database.graph <- function(DatabaseName,
                                 EndYear,
                                 Action = all.actions){
   cost.per.use %>%
-    filter(Database == DatabaseName) %>%
+    filter(Database %in% DatabaseName) %>%
     filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
     filter(User_Activity %in% Action) %>%
     ggplot(aes(x = Fiscal_Year, y = Cost_Per_Action, group=1)) +
