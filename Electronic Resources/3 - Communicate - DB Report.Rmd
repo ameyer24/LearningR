@@ -27,6 +27,7 @@ source("2a - Transform - DBUsage.R")
 source("2b - Transform - Financials.R")
 source("2c - Transform - DBCostPerUse.R")
 
+source("4 - New Stuff.R")
 ```
 
 ```{r Database Set Up}
@@ -34,9 +35,11 @@ source("2c - Transform - DBCostPerUse.R")
 Database = "Communication & Mass Media Complete"
 StartYear = 2014
 EndYear = 2018
+# Look up things:
+fund = get.fund("Communication & Mass Media Complete")
 ```
 
-This is a report for `r Database` from `r StartYear` to `r EndYear`.
+This is a report for `r Database` from `r StartYear` to `r EndYear`. This is charged to `r fund`.
 
 ## Financial Information
 

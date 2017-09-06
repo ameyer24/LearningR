@@ -120,6 +120,8 @@ cost.database.change <- function(DatabaseName,StartYear,EndYear){
     subset(select = -c(2:5))
 }
 
+cost.database.change("Business Source Complete", 2013, 2018)
+
 # Graphing database pricing.
 cost.database.graph <- function(DatabaseName,StartYear,EndYear){
   DB1.fin %>%
@@ -132,4 +134,20 @@ cost.database.graph <- function(DatabaseName,StartYear,EndYear){
     ylab("Cost of Subscription")
 }
 cost.database.graph ("Business Source Complete", 2013, 2018)
+
+###############################################################################
+# Other Financial Functions ___________________________________________________
+###############################################################################
+
+# Function to return Fund from DB1.fin given database name.
+get.fund <-function(DatabaseName) {
+  DB1.fin %>%
+    filter(Database %in% DatabaseName) %>%
+    select(Fund) %>%
+    unique() %>%
+    return()
+}
+
+get.fund("Communication & Mass Media Complete")
+
 
