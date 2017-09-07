@@ -120,7 +120,8 @@ cost.database.change <- function(DatabaseName,StartYear,EndYear){
     subset(select = -c(2:5))
 }
 
-cost.database.change("Business Source Complete", 2013, 2018)
+test <- cost.database.change("Business Source Complete", 2013, 2018)
+test <- cost.database.change(c("Business Source Complete","New Testament Abstracts"), 2013, 2018)
 
 # Graphing database pricing.
 cost.database.graph <- function(DatabaseName,StartYear,EndYear){
