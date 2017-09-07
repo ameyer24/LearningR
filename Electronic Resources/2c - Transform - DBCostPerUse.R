@@ -14,7 +14,7 @@ cost.per.use.usage <- DB1 %>%
   na.omit()
 
 # Transform the database pricing dataframe
-cost.per.use.cost <- select(DB1.fin, -c(4:5))
+cost.per.use.cost <- select(DB1.fin, -c(4:7))
 
 # Merging everything together.
 # Including everything from the usage dataframe.
