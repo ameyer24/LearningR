@@ -1,15 +1,6 @@
 # A place to test out new things before putting them elsewhere.
 
-# Function to return Fund given database name.
-get.fund <-function(DatabaseName) {
-  DB1.fin %>%
-    filter(Database %in% DatabaseName) %>%
-    select(Fund) %>%
-    unique() %>%
-    return()
-}
 
-get.fund("Communication & Mass Media Complete")
 
 # calculate the average price increase for databases per fund.
 # Cost of databases grouped by fund and fiscal year.
@@ -23,8 +14,7 @@ get.percent.changes <- function(StartYear, EndYear, SelectFund = all.funds){
     #mutate(Total_Cost = dollar(Total_Cost)) %>%
     select(-Cost) %>%
     group_by(Fund) %>%
-    mutate(Avg_Price_Change = mean(Price_Change)) %>%
-    #spread(Fiscal_Year, Price_Change) %>%
+    spread(Fiscal_Year, Price_Change) %>%
     write_csv(paste(output.folder, "cost.3.csv",sep="/"))
 }
 test = get.percent.changes (2014, 2018, "General")

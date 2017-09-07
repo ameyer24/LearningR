@@ -9,8 +9,8 @@ db.price.template <- DB1 %>%
   mutate(Price ="",
          Notes="",
          Fund="",
-         Ordering_Site="",
-         Order_Detail="Fiscal Year") %>%
+         Order_Agent="",
+         Order_Term="Fiscal Year") %>%
   spread(Year,Price) %>%
   write_csv(paste(output.folder, "database.price.template.csv",sep="/"))
 
@@ -29,11 +29,12 @@ DB1.fin <- db.prices.raw %>%
          value = Cost,
          8:16) %>% # Updated to make work; would be great to abstract this!!!
   filter(!is.na(Cost)) %>%
-  mutate(Cost = as.numeric(Cost)) %>%
-  subset(select = -c(6:7))
+  mutate(Cost = as.numeric(Cost))
+  #subset(select = -c(6:7))
 
-# Create
+# Create new variable listing all funds; used in later functions.
 all.funds = unique(DB1.fin$Fund)
 
 # Removes old data to keep everything nice and neat
 rm(db.price.template, db.prices.desc, db.prices.raw)
+

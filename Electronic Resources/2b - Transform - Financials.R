@@ -99,7 +99,7 @@ cost.overview.table.db <- function(StartYear, EndYear, SelectFund = all.funds){
     spread(Fiscal_Year, Total_Cost) %>%
     write_csv(paste(output.folder, "cost.3.csv",sep="/"))
 }
-test = cost.overview.table.db(2014, 2018, "Seminary")
+test = cost.overview.table.db(2009, 2018)
 
 
 ###############################################################################
