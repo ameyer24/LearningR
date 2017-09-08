@@ -49,5 +49,3 @@ all.actions <- unique(DB1$User_Activity)
 
 # Removes temporary dataframes to keep things neat
 rm(DB1.data.csv,DB1.data.excel)
-
-
