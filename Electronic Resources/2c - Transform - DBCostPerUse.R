@@ -59,7 +59,8 @@ cpu.database <- function(DatabaseName,
     filter(User_Activity %in% Action) %>%
     select(-c(2:3,6:7)) %>%
     mutate(Cost_Per_Action = dollar(Cost_Per_Action)) %>%
-    spread(Fiscal_Year, Cost_Per_Action)
+    spread(Fiscal_Year, Cost_Per_Action) %>%
+    rename("User Activity" = "User_Activity")
 }
 
 test <- cpu.database(c("Communication & Mass Media Complete","Literary Reference Center"), 2014, 2018)

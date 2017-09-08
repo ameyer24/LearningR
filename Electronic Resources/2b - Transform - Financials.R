@@ -117,7 +117,10 @@ cost.database.change <- function(DatabaseName,StartYear,EndYear){
     mutate(Percent_Change = subfun.percent.cost.diff(Cost, lag(Cost))) %>%
     mutate(Cost = dollar(Cost)) %>%
     filter(Fiscal_Year >= StartYear) %>%
-    select(Database,Fiscal_Year,Cost,Price_Change,Percent_Change)
+    select(Database,Fiscal_Year,Cost,Price_Change,Percent_Change) %>%
+    rename("Fiscal Year" = "Fiscal_Year",
+           "Price Change" = "Price_Change",
+           "Percent Change" = "Percent_Change")
 }
 
 test <- cost.database.change("Business Source Complete", 2013, 2018)

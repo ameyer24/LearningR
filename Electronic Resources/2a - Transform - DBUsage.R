@@ -34,10 +34,7 @@ usage.graph.database <- function(DatabaseName,
 usage.graph.database("Communication & Mass Media Complete", 2014, 2018)
 
 # Sums database usage by academic term.
-usage.sum.database.acad.term <- function(DatabaseName,
-                                         StartYear,
-                                         EndYear,
-                                         Action = all.actions){
+usage.sum.database.acad.term <- function(DatabaseName,StartYear,EndYear,Action = all.actions){
   DB1 %>%
     filter(Database == DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
@@ -50,16 +47,14 @@ usage.sum.database.acad.term <- function(DatabaseName,
     )) %>%
     group_by(Database,User_Activity,Academic_Term,Year) %>%
     summarize(Usage=sum(Usage)) %>%
-    spread(Academic_Term, Usage)
+    spread(Academic_Term, Usage) %>%
+    rename("User Activity" = "User_Activity")
 }
-# test1 <- usage.sum.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
+test1 <- usage.sum.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
 
 
 # Graphs database usage based on academic term.
-usage.graph.database.acad.term <- function(DatabaseName,
-                                           StartYear,
-                                           EndYear,
-                                           Action = all.actions){
+usage.graph.database.acad.term <- function(DatabaseName,StartYear,EndYear,Action = all.actions){
   DB1 %>%
     filter(Database == DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
@@ -75,7 +70,10 @@ usage.graph.database.acad.term <- function(DatabaseName,
     ggplot(aes(x = Academic_Term, y = Usage)) +
     geom_bar(aes(fill=factor(Year)),
              stat="identity",
-             position = position_dodge())
+             position = position_dodge()) +
+    scale_fill_discrete(name="Year") +
+    xlab("Academic Term") +
+    ylab("Usage")
 }
 usage.graph.database.acad.term("Communication & Mass Media Complete", 2014, 2018, "Record Views")
 
