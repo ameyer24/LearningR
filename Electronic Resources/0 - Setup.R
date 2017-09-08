@@ -12,12 +12,11 @@
 # Loading Packages ____________________________________________________________
 ###############################################################################
 
-library(mosaic)
-library(xlsx)
 library(tidyverse)
 library(readxl)
-library(zoo)
 library(lubridate)
+library(mosaic)
+library(zoo)
 library(scales)
 library(knitr)
 
