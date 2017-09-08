@@ -193,6 +193,4 @@ get.fund <-function(DatabaseName) {
     return()
 }
 
-get.fund("Communication & Mass Media Complete")
-
 

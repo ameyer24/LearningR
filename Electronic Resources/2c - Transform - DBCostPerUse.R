@@ -34,14 +34,34 @@ rm(cost.per.use.usage, cost.per.use.cost)
 # Cost Per Use - Overview Functions ___________________________________________
 ###############################################################################
 
-cpu.overview.1 <- function(df){
-  df %>%
-    select(-c(2:3,6:7)) %>%
+cpu.overview.1 <- function(StartYear,
+                           EndYear,
+                           Action = all.actions){
+  cost.per.use %>%
+    filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
+    filter(User_Activity %in% Action) %>%
+    select(-Usage,-Cost) %>%
     mutate(Cost_Per_Action = dollar(Cost_Per_Action)) %>%
     spread(Fiscal_Year, Cost_Per_Action)
 }
 
-# test <- cpu.overview.1(cost.per.use)
+test <- cpu.overview.1(2014, 2018, "Regular Searches")
+
+# Calculates the average cost per action - grouped by year.
+cpu.overview.2 <- function(StartYear,
+                           EndYear,
+                           Action = all.actions){
+  cost.per.use %>%
+    filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
+    filter(User_Activity %in% Action) %>%
+    select(-Usage,-Cost) %>%
+    group_by(User_Activity, Fiscal_Year) %>%
+    summarize(Average.CPA = median(Cost_Per_Action)) %>%
+    mutate(Average.CPA = dollar(Average.CPA)) %>%
+    spread(Fiscal_Year, Average.CPA)
+}
+
+test <- cpu.overview.2(2014, 2018,"Record Views")
 
 ###############################################################################
 # Cost Per Use - Detailed Functions ___________________________________________
@@ -87,4 +107,3 @@ cpu.database.graph <- function(DatabaseName,
 }
 
 cpu.database.graph("Communication & Mass Media Complete", 2010, 2018, "Record Views")
-# cpu.database.graph("Communication & Mass Media Complete", 2014, 2018)
