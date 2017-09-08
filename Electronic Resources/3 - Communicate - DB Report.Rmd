@@ -105,6 +105,33 @@ kable(cpu.database(Database, StartYear, EndYear, Action))
 cpu.database.graph(Database, StartYear, EndYear, Action)
 
 ```
-test
 
+
+\newpage
+```{r}
+Action = "Result Clicks"
+```
+
+### Detailed Database Usage - `r Action`
+
+
+```{r}
+
+kable(usage.sum.database.acad.term(Database, StartYear, EndYear, Action))
+usage.graph.database.acad.term(Database, StartYear, EndYear, Action)
+```
+
+Cost per use information.
+
+```{r}
+
+kable(cpu.database(Database, StartYear, EndYear, Action))
+cpu.database.graph(Database, StartYear, EndYear, Action)
+
+```
+
+\newpage
+```{r}
+Action = "Searches - federated and automated"
+```
 
