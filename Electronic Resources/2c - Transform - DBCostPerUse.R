@@ -85,5 +85,5 @@ cpu.database.graph <- function(DatabaseName,
     ylab("Cost per Action")
 }
 
-# cpu.database.graph("Communication & Mass Media Complete", 2014, 2018, "Record Views")
+cpu.database.graph("Communication & Mass Media Complete", 2010, 2018, "Record Views")
 # cpu.database.graph("Communication & Mass Media Complete", 2014, 2018)
