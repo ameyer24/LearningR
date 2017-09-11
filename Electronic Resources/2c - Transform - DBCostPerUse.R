@@ -48,6 +48,7 @@ cpu.overview.1 <- function(StartYear,
 test <- cpu.overview.1(2014, 2018, "Regular Searches")
 
 # Calculates the average cost per action - grouped by year.
+# updated to include the median cost as well.
 cpu.overview.2 <- function(StartYear,
                            EndYear,
                            Action = all.actions){
@@ -56,8 +57,10 @@ cpu.overview.2 <- function(StartYear,
     filter(User_Activity %in% Action) %>%
     select(-Usage,-Cost) %>%
     group_by(User_Activity, Fiscal_Year) %>%
-    summarize(Average.CPA = median(Cost_Per_Action)) %>%
-    mutate(Average.CPA = dollar(Average.CPA))
+    summarize(Median.CPA = median(Cost_Per_Action),
+              Average.CPA = mean(Cost_Per_Action)) %>%
+    mutate(Median.CPA = dollar(Median.CPA),
+           Average.CPA = dollar(Average.CPA))
 }
 
 test <- cpu.overview.2(2014, 2018,"Record Views")
