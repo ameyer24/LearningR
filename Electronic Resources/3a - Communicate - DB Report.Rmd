@@ -26,20 +26,17 @@ source("1c - ImportTidy - Financials.R")
 source("2a - Transform - DBUsage.R")
 source("2b - Transform - Financials.R")
 source("2c - Transform - DBCostPerUse.R")
-
 source("4 - New Stuff.R")
 ```
 
 ```{r Database Set Up}
 # Defining Variables for this report.
-Database = "Communication & Mass Media Complete"
+Database = "ATLA Religion Database with ATLASerials"
 StartYear = 2014
 EndYear = 2018
-# Look up things:
-fund = get.fund("Communication & Mass Media Complete")
 ```
 
-This is a report for `r Database` from `r StartYear` to `r EndYear`. This database is charged to the `r fund` fund.
+This is a report for `r Database` from `r StartYear` to `r EndYear`. This database is classified as a `r get.fund(Database)` database for funding purposes.
 
 ## Financial Information
 
@@ -74,7 +71,7 @@ kable(usage.sum.database.acad.term(Database, StartYear, EndYear, Action))
 usage.graph.database.acad.term(Database, StartYear, EndYear, Action)
 ```
 
-Cost per use information.
+Cost per `r Action ` is displayed below and is calculated based on the fiscal year.
 
 ```{r}
 
@@ -98,7 +95,7 @@ kable(usage.sum.database.acad.term(Database, StartYear, EndYear, Action))
 usage.graph.database.acad.term(Database, StartYear, EndYear, Action)
 ```
 
-Cost per use information.
+Cost per `r Action ` is displayed below and is calculated based on the fiscal year.
 
 ```{r}
 
@@ -122,17 +119,12 @@ kable(usage.sum.database.acad.term(Database, StartYear, EndYear, Action))
 usage.graph.database.acad.term(Database, StartYear, EndYear, Action)
 ```
 
-Cost per use information.
+Cost per `r Action ` is displayed below and is calculated based on the fiscal year.
 
 ```{r}
 
 kable(cpu.database(Database, StartYear, EndYear, Action))
 cpu.database.graph(Database, StartYear, EndYear, Action)
 
-```
-
-\newpage
-```{r}
-Action = "Searches - federated and automated"
 ```
 
