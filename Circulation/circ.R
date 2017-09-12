@@ -2,15 +2,26 @@
 # Reading the files and tidying the data ______________________________________
 ###############################################################################
 
-# Setting up the folders and file pathways 
-input <- "C:/DataScience/inputs"
-output <- "C:/DataScience/outputs"
-circ_raw <- "C:/DataScience/inputs/Circulation/Circulation.txt"
+library(lubridate)
+# Setting up the file pathway
+circ_raw <- "C:/DataScience/inputs/Circulation/AJM - Circulation for R.txt"
 
 # Setting up the file headers
-circ_col_names = c("Circ_ID","Item_ID","Date_Time","Patron","Item_Type","Acad_Year","Acad_Term","Week_of_sem")
+col_names = c("Circ_ID","Item_ID","Item_Type","Patron","Charge_Date","Due_Date")
 
 # Importing the data.
-circ_data <- read.csv(file = circ_raw, col.names = circ_col_names)
-circ_data <- circ_data[-c(6:8)] # Deleting my "special" addition for this test.
+circ_data <- read.csv(file = circ_raw,
+                      col.names = circ_col_names)
+
+
+
+circ_data$Charge_Date <- as.Date(circ_data$Charge_Date)
+
+
+circ_data$Charge_Date <- strptime(x = as.character(circ_data$Charge_Date),
+                                  format = "%d/%m/%Y %H:%M")
+
+circ_data$Due_Date <- strptime(x = as.character(circ_data$Due_Date),
+                                  format = "%d/%m/%Y %H:%M")
+
 
