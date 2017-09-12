@@ -1,0 +1,56 @@
+---
+title: "Electronic Resource Fund Overview Report"
+author: "Andy Meyer"
+date: "Fall 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r Data and Function Import, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+knitr::opts_chunk$set(
+  echo = FALSE,
+	message = FALSE,
+	warning = FALSE)
+
+# # I could probably clean this up to import everything...
+# source.files <- list.files(pattern="*.R")
+# sapply(source.files, source, .GlobalEnv)
+
+# I could probably clean this up to import everything...
+source("0 - Setup.R")
+source("1a - ImportTidy - DB1.R")
+source("1c - ImportTidy - Financials.R")
+source("2a - Transform - DBUsage.R")
+source("2b - Transform - Financials.R")
+source("2c - Transform - DBCostPerUse.R")
+source("4 - New Stuff.R")
+```
+
+```{r Database Set Up}
+# Defining Variables for this report.
+Database = "ATLA Religion Database with ATLASerials"
+Fund = "Seminary"
+StartYear = 2014
+EndYear = 2018
+```
+
+This is a report for online resources billed to the `r Fund` fund from `r StartYear` to `r EndYear`.
+
+## Financial Overview
+```{r}
+kable(cost.overview.table.db(StartYear, EndYear,Fund ))
+```
+
+
+
+\newpage
+## Financial Information
+
+```{r}
+kable(cost.database.change(Database, StartYear, EndYear))
+  
+cost.database.graph(Database, StartYear, EndYear)
+```
