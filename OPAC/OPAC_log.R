@@ -62,11 +62,11 @@ Vufind.SearchURL.column.names <- c("GET",
 # Reading the log files into R-------------------------------------------------
 ###############################################################################
 
-# Testing Things Out one file at a time.
-raw.vufind.data <- read.table("Q:/OPAC_Logs/vufind_access_log.20170501.gz",
-           colClasses = vufind.column.classes,
-           col.names = vufind.column.names,
-           comment.char = "")
+# # Testing Things Out one file at a time.
+# raw.vufind.data <- read.table("Q:/OPAC_Logs/vufind_access_log.20170501.gz",
+#            colClasses = vufind.column.classes,
+#            col.names = vufind.column.names,
+#            comment.char = "")
 
 # Reads all the files from the given folder.
 log.files <- list.files(folder, full.names = T)
@@ -119,6 +119,6 @@ write.csv(NPU.vufind.searches.clean, "C:/NPUSearches.csv")
 # Filtering the data for only record views-------------------------------------
 ###############################################################################
 
-# Filters out only the lines that contain search information.
+# Filters out only the lines that contain record views.
 NPU.vufind.records <- NPU.vufind.data %>%
   filter(grepl("vf-npu/Record",SearchURL))
