@@ -114,26 +114,26 @@ cpu.database.graph("Communication & Mass Media Complete", 2010, 2018, "Record Vi
 
 
 
-# I want to add the median cost per use data to this graph
-data2add <- cpu.overview.2(2014, 2018,"Record Views")
-
-cpu.database.graph2 <- function(DatabaseName,
-                               StartYear,
-                               EndYear,
-                               Action = all.actions){
-  cost.per.use %>%
-    filter(Database %in% DatabaseName) %>%
-    filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
-    filter(User_Activity %in% Action) %>%
-    ggplot() +
-    geom_line(aes(x = Fiscal_Year, y = Cost_Per_Action)) +
-    geom_point(data = data2add, aes(x=Fiscal_Year, y=Average.CPA)) +
-    scale_y_continuous(labels=dollar) +
-    ggtitle(paste(DatabaseName)) +
-    xlab("Fiscal Year") +
-    ylab("Cost per Action")
-}
-
-cpu.database.graph2("Communication & Mass Media Complete", 2010, 2018, "Record Views")
-
-data = cpu.overview.2(2014, 2018,"Record Views"), aes(x=Fiscal_Year, y=Average.CPA)
+# # I want to add the median cost per use data to this graph
+# data2add <- cpu.overview.2(2014, 2018,"Record Views")
+# 
+# cpu.database.graph2 <- function(DatabaseName,
+#                                StartYear,
+#                                EndYear,
+#                                Action = all.actions){
+#   cost.per.use %>%
+#     filter(Database %in% DatabaseName) %>%
+#     filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
+#     filter(User_Activity %in% Action) %>%
+#     ggplot() +
+#     geom_line(aes(x = Fiscal_Year, y = Cost_Per_Action)) +
+#     geom_point(data = data2add, aes(x=Fiscal_Year, y=Average.CPA)) +
+#     scale_y_continuous(labels=dollar) +
+#     ggtitle(paste(DatabaseName)) +
+#     xlab("Fiscal Year") +
+#     ylab("Cost per Action")
+# }
+# 
+# cpu.database.graph2("Communication & Mass Media Complete", 2010, 2018, "Record Views")
+# 
+# data = cpu.overview.2(2014, 2018,"Record Views"), aes(x=Fiscal_Year, y=Average.CPA)
