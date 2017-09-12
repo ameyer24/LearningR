@@ -84,7 +84,7 @@ cost.overview.table.fund <- function(StartYear,EndYear,SelectFund = all.funds){
     ylab("Cost") +
     scale_y_continuous(labels = dollar)
 }
-cost.overview.table.fund(2014,2018)
+cost.overview.table.fund(2014,2018,"Business")
 
 
 # Cost of databases grouped by fund and fiscal year.
@@ -99,7 +99,7 @@ cost.overview.table.db <- function(StartYear, EndYear, SelectFund = all.funds){
     spread(Fiscal_Year, Total_Cost) %>%
     write_csv(paste(output.folder, "cost.3.csv",sep="/"))
 }
-test = cost.overview.table.db(2009, 2018)
+test = cost.overview.table.db(2014, 2018,"Business")
 
 
 ###############################################################################
@@ -176,7 +176,7 @@ get.percent.change.fund <- function(StartYear, EndYear, SelectFund = all.funds){
     arrange(Fund)
 }
 
-sci_test <- get.percent.change.fund(2014, 2017)
+sci_test <- get.percent.change.fund(2014, 2017,"Business")
 
 
 
@@ -193,4 +193,13 @@ get.fund <-function(DatabaseName) {
     return()
 }
 
+# Function to return all the resources charged to a given fund
+get.databases <- function(FundName){
+  DB1.fin %>%
+    filter(Fund %in% FundName) %>%
+    select(Database) %>%
+    unique() %>%
+    return()
+}
+get.databases("Seminary")
 
