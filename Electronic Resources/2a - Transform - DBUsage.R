@@ -50,7 +50,7 @@ usage.sum.database.acad.term <- function(DatabaseName,StartYear,EndYear,Action =
     spread(Academic_Term, Usage) %>%
     rename("User Activity" = "User_Activity")
 }
-test1 <- usage.sum.database.acad.term("Communication & Mass Media Complete", 2014, 2018)
+test1 <- usage.sum.database.acad.term("SAGE Journals", 2014, 2018)
 
 
 # Graphs database usage based on academic term.

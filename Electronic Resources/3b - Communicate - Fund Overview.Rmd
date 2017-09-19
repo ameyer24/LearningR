@@ -41,16 +41,13 @@ This is a report for online resources billed to the `r Fund` fund from `r StartY
 
 ## Financial Overview
 ```{r}
-kable(cost.overview.table.db(StartYear, EndYear,Fund ))
+kable(cost.overview.table.db(StartYear, EndYear, Fund))
 ```
 
-
-
 \newpage
-## Financial Information
+## Usage Overview
+
 
 ```{r}
-kable(cost.database.change(Database, StartYear, EndYear))
-  
-cost.database.graph(Database, StartYear, EndYear)
+
 ```
