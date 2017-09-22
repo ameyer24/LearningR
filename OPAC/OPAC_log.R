@@ -4,7 +4,6 @@
 
 install.packages("tidyverse")
 install.packages("stringr")
-install.packages("webreadr")
 
 ###############################################################################
 # Loading Packages ____________________________________________________________
@@ -12,7 +11,6 @@ install.packages("webreadr")
 
 library(tidyverse)
 library(stringr)
-library(webreadr)
 
 ###############################################################################
 # Reading the files and tidying the data ______________________________________
@@ -55,28 +53,59 @@ vufind.col.names <- c("AccessMethod",
 # This function reads data from a single log file.
 read.vufind.log <- function(file) {
   file %>%
-    read.table(colClasses = vufind.col.classes, col.names = vufind.col.names) %>%
-    mutate(DateTime = as.POSIXct(DateTime, tz="GMT",format="[%d/%b/%Y:%H:%M:%S"))
+    read.table(colClasses = vufind.col.classes,
+               col.names = vufind.col.names,
+               comment.char = "") %>%
+    mutate(DateTime = as.POSIXct(DateTime,
+                                 tz="GMT",
+                                 format="[%d/%b/%Y:%H:%M:%S")) %>%
+    separate(col=SearchURL, into = c("Method","SearchURL", "Protocol"), sep = " ")
 }
 
-test1 <- read.vufind.log("Q:/OPAC_Logs/vufind_access_log.20170501.gz")
-
+#test1 <- read.vufind.log("Q:/OPAC_Logs/vufind_access_log.20170501.gz")
 
 # This function reads data from a folder full of log files.
 read.vufind.logs <- function(folder) {
-  log.files <- list.files(folder, full.names = T)
-  bind_rows(lapply(log.files,read.vufind.log))
+  list.files(folder, full.names = T) %>%
+  lapply(read.vufind.log) %>%
+  bind_rows()
 }
 
 raw.vufind.data <- read.vufind.logs(OPAC_folder)
 
+# Filters out non-NPU rows; returns only rows with 'vf-npu' in the SearchURL.
+NPU.vufind.data <- filter(raw.vufind.data, grepl('vf-npu',SearchURL))
 
-# Starts the process for reading a whole folder of log files.
-log.files <- list.files(folder, full.names = T)
+# Filters out only the lines that contain search information.
+NPU.vufind.searches <- filter(NPU.vufind.data,grepl("Search/Home",SearchURL))
 
-raw.vufind.data <- bind_rows(lapply(log.files,read.vufind.log))
+# Filters out only the lines that contain search information.
+NPU.vufind.records <- filter(NPU.vufind.data, grepl("vf-npu/Record",SearchURL))
 
 
+library(webreadr)
+requests <- split_clf(NPU.vufind.data$SearchURL)
+
+
+request2 <- separate(data=NPU.vufind.data, col=SearchURL, into = c("Method","SearchURL", "Protocol"), sep = " ")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###############################################################################
+# Dividing the SearchURL-------------------------------------------------
+###############################################################################
 
 # Using regular expressions to parse out the SearchURL field.
 # This regex returns the entire string divided into parts.
@@ -106,24 +135,6 @@ Vufind.SearchURL.column.names <- c("GET",
 
 
 ###############################################################################
-# Filtering the data by institution--------------------------------------------
-###############################################################################
-
-# Filters out only NPU lines.
-NPU.vufind.data <- raw.vufind.data %>%
-  filter(grepl('vf-npu',SearchURL)) %>%
-  mutate(DateTime = as.POSIXct(DateTime,
-                               tz="GMT",
-                               format="[%d/%b/%Y:%H:%M:%S"))
-###############################################################################
-# Filtering the data for only searches-----------------------------------------
-###############################################################################
-
-# Filters out only the lines that contain search information.
-NPU.vufind.searches <- NPU.vufind.data %>%
-  filter(grepl("Search/Home",SearchURL))
-
-###############################################################################
 # Divides the SearchURL into useful parts--------------------------------------
 ###############################################################################
 
@@ -143,13 +154,5 @@ NPU.vufind.searches.clean <- NPU.vufind.searches.divided %>%
   mutate(Type = gsub("type=","",Type))
   
 write.csv(NPU.vufind.searches.clean, "C:/NPUSearches.csv")
-
-###############################################################################
-# Filtering the data for only record views-------------------------------------
-###############################################################################
-
-# Filters out only the lines that contain record views.
-NPU.vufind.records <- NPU.vufind.data %>%
-  filter(grepl("vf-npu/Record",SearchURL))
 
 
