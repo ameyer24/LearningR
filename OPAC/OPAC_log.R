@@ -1,14 +1,29 @@
+###############################################################################
+# Installing Packages _________________________________________________________
+###############################################################################
+
 install.packages("tidyverse")
 install.packages("stringr")
+install.packages("webreadr")
+
+###############################################################################
+# Loading Packages ____________________________________________________________
+###############################################################################
+
 library(tidyverse)
 library(stringr)
+library(webreadr)
 
+###############################################################################
+# Reading the files and tidying the data ______________________________________
+###############################################################################
 
 # Define path to folder that contains the OPAC logs.
-folder <- "Q:/OPAC_Logs"
+OPAC_folder <- "Q:/OPAC_Logs"
 
-# Define the Column Classes. NULL columns classes are skipped.
-vufind.column.classes <- c("character",
+# Define the Column Classes.
+# NULL columns classes are skipped, we only want data in four fields.
+vufind.col.classes <- c("character",
                            "NULL",
                            "NULL",
                            "NULL",
@@ -21,17 +36,47 @@ vufind.column.classes <- c("character",
                            "character")
 
 # Define the column names.
-vufind.column.names <- c("AccessMethod",
-                         "test",
-                         "test",
-                         "test",
+vufind.col.names <- c("AccessMethod",
+                         "skipped",
+                         "skipped",
+                         "skipped",
                          "DateTime",
-                         "test",
+                         "skipped",
                          "SearchURL",
-                         "test",
-                         "test",
-                         "test",
+                         "skipped",
+                         "skipped",
+                         "skipped",
                          "Browser")
+
+###############################################################################
+# Reading files into R-------------------------------------------------
+###############################################################################
+
+# This function reads data from a single log file.
+read.vufind.log <- function(file) {
+  file %>%
+    read.table(colClasses = vufind.col.classes, col.names = vufind.col.names) %>%
+    mutate(DateTime = as.POSIXct(DateTime, tz="GMT",format="[%d/%b/%Y:%H:%M:%S"))
+}
+
+test1 <- read.vufind.log("Q:/OPAC_Logs/vufind_access_log.20170501.gz")
+
+
+# This function reads data from a folder full of log files.
+read.vufind.logs <- function(folder) {
+  log.files <- list.files(folder, full.names = T)
+  bind_rows(lapply(log.files,read.vufind.log))
+}
+
+raw.vufind.data <- read.vufind.logs(OPAC_folder)
+
+
+# Starts the process for reading a whole folder of log files.
+log.files <- list.files(folder, full.names = T)
+
+raw.vufind.data <- bind_rows(lapply(log.files,read.vufind.log))
+
+
 
 # Using regular expressions to parse out the SearchURL field.
 # This regex returns the entire string divided into parts.
@@ -58,23 +103,7 @@ Vufind.SearchURL.column.names <- c("GET",
                                    "Sort",
                                    "Page")
 
-###############################################################################
-# Reading the log files into R-------------------------------------------------
-###############################################################################
 
-# # Testing Things Out one file at a time.
-# raw.vufind.data <- read.table("Q:/OPAC_Logs/vufind_access_log.20170501.gz",
-#            colClasses = vufind.column.classes,
-#            col.names = vufind.column.names,
-#            comment.char = "")
-
-# Reads all the files from the given folder.
-log.files <- list.files(folder, full.names = T)
-raw.vufind.data <- do.call(rbind, lapply(log.files,
-                                         read.table,
-                                         colClasses = vufind.column.classes,
-                                         col.names = vufind.column.names,
-                                         comment.char = ""))
 
 ###############################################################################
 # Filtering the data by institution--------------------------------------------
@@ -122,3 +151,5 @@ write.csv(NPU.vufind.searches.clean, "C:/NPUSearches.csv")
 # Filters out only the lines that contain record views.
 NPU.vufind.records <- NPU.vufind.data %>%
   filter(grepl("vf-npu/Record",SearchURL))
+
+
