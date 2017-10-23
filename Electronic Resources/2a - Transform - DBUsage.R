@@ -8,13 +8,14 @@ usage.select.database <- function(DatabaseName,
                                   EndYear,
                                   Action = all.actions){
   DB1 %>%
-    filter(Database==DatabaseName) %>%
+    filter(Database %in% DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
     filter(User_Activity %in% Action) %>%
     spread(Date,Usage) %>%
     write_csv(paste(output.folder, "usage.table.1.csv",sep="/")) %>%
     return()
 }
+test <- usage.select.database("Communication & Mass Media Complete", 2014, 2018)
 
 # Graphing database usage.
 usage.graph.database <- function(DatabaseName,
@@ -22,21 +23,23 @@ usage.graph.database <- function(DatabaseName,
                                  EndYear,
                                  Action = all.actions){
   DB1 %>%
-    filter(Database==DatabaseName) %>%
+    filter(Database %in% DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
     filter(User_Activity %in% Action) %>%
     ggplot(aes(Date, Usage)) +
     geom_line() +
-    geom_smooth(span=0.7) +
     scale_x_yearmon() +
     facet_grid(User_Activity ~ ., scales = "free")
 }
 usage.graph.database("Communication & Mass Media Complete", 2014, 2018)
 
 # Sums database usage by academic term.
-usage.sum.database.acad.term <- function(DatabaseName,StartYear,EndYear,Action = all.actions){
+usage.sum.database.acad.term <- function(DatabaseName
+                                         StartYear,
+                                         EndYear,
+                                         Action = all.actions){
   DB1 %>%
-    filter(Database == DatabaseName) %>%
+    filter(Database %in% DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
     filter(User_Activity %in% Action) %>%
     mutate(Year = year(Date), Month=month(Date)) %>%
@@ -56,7 +59,7 @@ test1 <- usage.sum.database.acad.term("SAGE Journals", 2014, 2018)
 # Graphs database usage based on academic term.
 usage.graph.database.acad.term <- function(DatabaseName,StartYear,EndYear,Action = all.actions){
   DB1 %>%
-    filter(Database == DatabaseName) %>%
+    filter(Database %in% DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
     filter(User_Activity %in% Action) %>%
     mutate(Year = year(Date), Month=month(Date)) %>%
