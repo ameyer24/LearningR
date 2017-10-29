@@ -34,7 +34,7 @@ usage.graph.database <- function(DatabaseName,
 usage.graph.database("Communication & Mass Media Complete", 2014, 2018)
 
 # Sums database usage by academic term.
-usage.sum.database.acad.term <- function(DatabaseName
+usage.sum.database.acad.term <- function(DatabaseName,
                                          StartYear,
                                          EndYear,
                                          Action = all.actions){
@@ -57,25 +57,30 @@ test1 <- usage.sum.database.acad.term("SAGE Journals", 2014, 2018)
 
 
 # Graphs database usage based on academic term.
-usage.graph.database.acad.term <- function(DatabaseName,StartYear,EndYear,Action = all.actions){
+usage.graph.database.acad.term <- function(DatabaseName,
+                                           StartYear,
+                                           EndYear,
+                                           Action = all.actions){
   DB1 %>%
+    # filters based on database name, date, and user activity
     filter(Database %in% DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
     filter(User_Activity %in% Action) %>%
+    # creates new variables "Year" and "Month" from the date field.
     mutate(Year = year(Date), Month=month(Date)) %>%
+    # creates new variable "Academic_Term" based on the month data.
     mutate(Academic_Term = derivedFactor(
       "Spring" = (Month==1 | Month==2  | Month==3  | Month==4),
       "Summer" = (Month==5 | Month==6  | Month==7  | Month==8),
       "Fall"   = (Month==9 | Month==10 | Month==11 | Month==12)
     )) %>%
-    group_by(Database,User_Activity,Academic_Term,Year) %>%
+    group_by(Database, User_Activity, Academic_Term, Year) %>%
     summarize(Usage=sum(Usage)) %>%
-    ggplot(aes(x = Academic_Term, y = Usage)) +
+    ggplot(aes(x = Year, y = Usage)) +
     geom_bar(aes(fill=factor(Year)),
-             stat="identity",
-             position = position_dodge()) +
-    scale_fill_discrete(name="Year") +
-    xlab("Academic Term") +
+             stat="identity") +
+    facet_grid(. ~ Academic_Term) +
+    xlab("Year and Academic Term") +
     ylab("Usage")
 }
 usage.graph.database.acad.term("Communication & Mass Media Complete", 2014, 2018, "Record Views")

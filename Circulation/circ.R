@@ -3,6 +3,7 @@
 ###############################################################################
 
 library(tidyverse)
+library(lubridate)
 # Setting up the file pathway
 circ_raw <- "C:/DataScience/inputs/Circulation/AJM - Circulation for R.txt"
 
@@ -25,3 +26,15 @@ circ_data$Due_Date <- parse_date_time(circ_data$Due_Date,
 ggplot(circ_data, aes(x=year(Charge_Date))) +
   geom_bar() +
   theme_minimal()
+
+###############################################################################
+# Transformations and Visualizations __________________________________________
+###############################################################################
+
+eq_circ_data <- circ_data %>%
+  filter(grepl("EQ",Item_Type)) %>%
+  filter(year(Charge_Date) >= 2014)
+
+ggplot(eq_circ_data, aes(x=year(Charge_Date),y=count(Circ_ID))) +
+  geom_line() +
+  facet_grid(Item_Type~.,scales="free")

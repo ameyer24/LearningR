@@ -15,10 +15,6 @@ knitr::opts_chunk$set(
 	message = FALSE,
 	warning = FALSE)
 
-# # I could probably clean this up to import everything...
-# source.files <- list.files(pattern="*.R")
-# sapply(source.files, source, .GlobalEnv)
-
 # I could probably clean this up to import everything...
 source("0 - Setup.R")
 source("1a - ImportTidy - DB1.R")

@@ -29,4 +29,3 @@ input.folder <- "C:/DataScience/inputs"
 output.folder <- "C:/DataScience/outputs"
 DB1folder <- "C:/DataScience/inputs/DB1Reports"
 JR1folder <- "C:/DataScience/inputs/JR1Reports"
-

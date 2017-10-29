@@ -42,6 +42,7 @@ DB1.data.excel <- load.DB1.excel(DB1folder)
 
 DB1 <- unique(rbind(DB1.data.csv,DB1.data.excel))
 
+write_csv(DB1, paste(output.folder, "db1.csv",sep="/"))
 
 # Create a variable with all user actions
 # Need this for later functions to function
