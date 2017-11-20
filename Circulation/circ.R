@@ -114,8 +114,13 @@ ggplot(data = circ_data, aes(x=year(Charge_Date))) +
 circ_data$LoanPeriod <- as.numeric(difftime(circ_data$Due_Date, circ_data$Charge_Date, units="hours"))
 # That gives raw values; let's categorize them.
 circ_data$LoanCat <- cut(circ_data$LoanPeriod,
-                         breaks = c(0,2,3,6,24,168,673,1388,2710,100000),
-                         labels = c("2 Hour", "3 Hour","6 Hour","24 hour","1 Week","4 Week","8 Week","16 Week","More"))
+                         breaks = c(0,2,3,6,24,190,696,1388,2710,100000),
+                         labels = c("0-2 Hour", "3 Hour","6 Hour","24 hour","1 Week","4 Week","8 Week","16 Week","More"))
+# That gives raw values; let's categorize them.
+# Let's make this a lot easier. Under a week or over a week. Reserve or not.
+circ_data$LoanCatSimple <- cut(circ_data$LoanPeriod,
+                         breaks = c(0,190,100000),
+                         labels = c("Reserve","Regular"))
 
 
 ggplot(data = circ_data, aes(x=year(Charge_Date))) +
@@ -128,7 +133,6 @@ ggplot(data = circ_data, aes(x=year(Charge_Date))) +
 
 student_circ_data <- filter(circ_data,Patron=="Undergraduate")
 
-
 ###############################################################################
 # Visualize - Busy at Circulation Desk ________________________________________
 ###############################################################################
@@ -140,4 +144,36 @@ ggplot(data = circ_data) +
   geom_tile(aes(x=ChargeDay,
                   y=ChargeHour,
                   fill = Circ_ID))
+
+###############################################################################
+# Transformations - Filter by Item Type ____________________________________
+###############################################################################
+# Look at only the book data.
+book_circ_data <- filter(circ_data,Item_Type=="Books")
+# Graph and peak at circ loan periods.
+# Filter by students
+ggplot(data = filter(book_circ_data, PatronSimple == "ILL"),
+                     aes(x=year(Charge_Date))) +
+  geom_bar(aes(fill=LoanCatSimple))
+
+
+eq_circ_data <- filter(circ_data,ItemSimple=="Equipment")
+# Graph and peak at circ loan periods.
+# Filter by students
+ggplot(data = filter(eq_circ_data, PatronSimple == "Student"),
+       aes(x=year(Charge_Date))) +
+  geom_bar()
+
+
+bookEQ_circ_data <- circ_data %>%
+  filter(Item_Type %in% c("Books",
+                          "EQ-1 day",
+                          "EQ-3 day",
+                          "EQ-6 hour",
+                          "EQ-Kindle",
+                          "EQ-Laptop"))
+
+ggplot(data = filter(bookEQ_circ_data, PatronSimple == "Student"),
+       aes(x=year(Charge_Date))) +
+  geom_bar(aes(fill=Item_Type))
   
