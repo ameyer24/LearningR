@@ -9,7 +9,7 @@ library(data.table)
 # Set up Files
 circ_raw <- "C:/DataScience/inputs/Circulation/circtransactions.csv"
 # Set up the Column Names for the Import File
-col_names = c("Circ_ID","Item_ID","Item_Type","Patron","Charge_Date","Due_Date")
+col_names = c("CircID","ItemID","ItemType","Patron","ChargeDate","DueDate")
 
 
 ###############################################################################
