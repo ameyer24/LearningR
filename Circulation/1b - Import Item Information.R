@@ -10,4 +10,6 @@ item.data <- read.csv(item.file, col.names = item.col.names)
 
 rm(item.file, item.col.names)
 
-
+# This creates a factor with the first letter from the LCClass
+item.data$LCLetter <- as.factor(substring(item.data$LCClass,1,1))
+levels(item.data$LCLetter)
