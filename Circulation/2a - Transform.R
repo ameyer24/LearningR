@@ -1,10 +1,10 @@
 ###############################################################################
 # Transformations - Collapsing Factors ________________________________________
 ###############################################################################
-# Raw data has 15 patron groups - I want to collapse them.
+# Raw data has 15 patron groups - I want to collapse them into fewer groups.
 levels(circ.data$Patron)
 # Create a new variable with simplified patron groups
-circ.data$PatronSimple <- fct_collapse(circ.data$Patron,
+circ.data$PatronGroups <- fct_collapse(circ.data$Patron,
                                        Student = c("Undergraduate",
                                                    "Graduate Student"),
                                        Staff   = c("Faculty - Full time",
@@ -25,7 +25,7 @@ circ.data$PatronSimple <- fct_collapse(circ.data$Patron,
 # Raw data has 19 Item Types - I want to collapse them.
 levels(circ.data$ItemType)
 # Create new variable with simplified Item Types
-circ.data$ItemSimple <- fct_collapse(circ.data$ItemType,
+circ.data$ItemGroups <- fct_collapse(circ.data$ItemType,
                                      Archives  = c("Arch-Covenant",
                                                    "Archives"),
                                      Books     = c("Books",
@@ -91,8 +91,8 @@ circ.data$AcademicYear  <- factor(paste(circ.data$AcademicYear - 1,
 ###############################################################################
 # I want to sort book circulations into Reserve and Regular.
 # Combine the LoanCatSimple and ItemType Simple for books
-circ.data$ItemSimple2 <- ifelse(circ.data$ItemSimple == "Books",
+circ.data$ItemGroup2 <- ifelse(circ.data$ItemGroups == "Books",
                                 ifelse(circ.data$LoanCatSimple == "Reserve",
                                        paste("Books - Reserve"),
                                        paste("Books - Regular")),
-                                paste(circ.data$ItemSimple))
+                                paste(circ.data$ItemGroups))

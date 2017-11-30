@@ -26,3 +26,4 @@ circ.data$DueDate <- parse_date_time(circ.data$DueDate,
 
 # Remove variables.
 rm(circ.file,col.names)
+
