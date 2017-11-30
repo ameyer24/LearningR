@@ -59,13 +59,15 @@ circ.data$LoanPeriod <- as.numeric(difftime(circ.data$DueDate,
                                             units="hours"))
 
 # Convert the raw difference into loan period categories.
+# I've updated the parameters to include some absurb loan periods.
+# Maybe I should just exclude those instead.
 circ.data$LoanCat <- cut(circ.data$LoanPeriod,
-                         breaks = c(0,2,3,6,24,190,696,1388,2710,100000),
+                         breaks = c(-1000000000000000,2,3,6,24,190,696,1388,2710,1000000000000000),
                          labels = c("0-2 Hour", "3 Hour","6 Hour","24 hour","1 Week","4 Week","8 Week","16 Week","More"))
 
 # Let's make this a lot easier. Under a week or over a week. Reserve or not.
 circ.data$LoanCatSimple <- cut(circ.data$LoanPeriod,
-                               breaks = c(0,190,100000),
+                               breaks = c(-1000000000000000,190,1000000000000000),
                                labels = c("Reserve","Regular"))
 
 
