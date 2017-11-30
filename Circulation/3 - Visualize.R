@@ -2,14 +2,12 @@
 # Visualize - Bar Plots _______________________________________________________
 ###############################################################################
 
-
 # Simple Bar Plot with data filtered by factors
 # Plotted by Calendar Year
 circ.data %>%
-  filter(ItemSimple == "Books") %>%
-  filter(PatronSimple == "Student") %>%
+  filter(PatronSimple != "ILL") %>%
   ggplot(aes(x=year(ChargeDate))) + 
-           geom_bar(aes(fill = ItemType))
+    geom_bar(aes(fill = ItemSimple2))
 
 # Simple Bar Plot with more complicated filtering         
 circ.data %>%
@@ -26,7 +24,7 @@ ggplot(aes(x=year(ChargeDate))) +
 circ.data %>%
 ggplot(aes(x=year(ChargeDate))) +
   geom_bar() +
-  facet_grid(ItemSimple ~ PatronSimple)
+  facet_grid(ItemSimple2 ~ PatronSimple)
 
 # Bar Plot with filters
 # X Axis is Academic Year (with some formatting!)

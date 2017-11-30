@@ -1,0 +1,19 @@
+---
+title: "Circulation Report"
+author: "AJM"
+date: "November 30, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overall Circulation
+
+## Circulation by Patron Group
+
+## Circulation by Item Type
+
+## Book Circulation
+
