@@ -5,20 +5,9 @@
 # Simple Bar Plot with data filtered by factors
 # Plotted by Calendar Year
 circ.data %>%
-  filter(PatronSimple != "ILL") %>%
+  filter(PatronSimple == "Staff") %>%
   ggplot(aes(x=year(ChargeDate))) + 
     geom_bar(aes(fill = ItemSimple2))
-
-# Simple Bar Plot with more complicated filtering         
-circ.data %>%
-  filter(ItemType %in% c("Books",
-                          "EQ-1 day",
-                          "EQ-3 day",
-                          "EQ-6 hour",
-                          "EQ-Kindle",
-                          "EQ-Laptop")) %>%
-ggplot(aes(x=year(ChargeDate))) +
-  geom_bar(aes(fill=ItemType))
 
 # Bar Plot with facets  
 circ.data %>%
