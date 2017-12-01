@@ -8,6 +8,7 @@ library(data.table)
 
 # Define path to data file
 circ.file <- "C:/DataScience/inputs/Circulation/circtransactions.csv"
+
 # Define column names for the circulation data in the file
 col.names = c("CircID","ItemID","ItemType","Patron","ChargeDate","DueDate")
 
