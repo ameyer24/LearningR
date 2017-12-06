@@ -21,11 +21,11 @@ library(scales)
 library(knitr)
 
 ###############################################################################
-# Reading the files and tidying the data ______________________________________
+# Setting up the Working Directory ____________________________________________
 ###############################################################################
 
-# Setting up the folders
-input.folder <- "C:/DataScience/inputs"
-output.folder <- "C:/DataScience/outputs"
-DB1folder <- "C:/DataScience/inputs/DB1Reports"
-JR1folder <- "C:/DataScience/inputs/JR1Reports"
+getwd()
+DB1folder <- "./DB1_reports"
+JR1folder <- "./JR1_reports"
+output.folder <- "./outputs"
+
