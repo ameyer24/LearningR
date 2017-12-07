@@ -6,25 +6,25 @@ library(tidyverse)
 library(lubridate)
 library(data.table)
 
-# Define path to data file
-circ.file <- "C:/DataScience/inputs/Circulation/circtransactions.csv"
-
-# Define column names for the circulation data in the file
-col.names = c("CircID","ItemID","ItemType","Patron","ChargeDate","DueDate")
-
-
 ###############################################################################
 # Import and Tidy _____________________________________________________________
 ###############################################################################
+
+# Define path to data file
+circ_file <- "C:/DataScience/inputs/Circulation/circtransactions.csv"
+
+# Define column names for the circulation data in the file
+circ_col_names = c("Circ_ID","Item_ID","Item_Type","Patron","Charge_Date","Due_Date")
+
 # Import the data.
-circ.data <- read.csv(circ.file, col.names = col.names)
+circ_data <- read.csv(circ_file, col.names = circ_col_names)
 
 # Cleaning up the date/time fields.
-circ.data$ChargeDate <- parse_date_time(circ.data$ChargeDate,
+circ_data$Charge_Date <- parse_date_time(circ_data$Charge_Date,
                                         orders = "m/d/y H:M:S")
-circ.data$DueDate <- parse_date_time(circ.data$DueDate,
+circ_data$Due_Date <- parse_date_time(circ_data$Due_Date,
                                      orders = "m/d/y H:M:S")
 
 # Remove variables.
-rm(circ.file,col.names)
+rm(circ_file,circ_col_names)
 

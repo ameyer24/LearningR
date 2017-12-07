@@ -1,6 +1,6 @@
 # Path to the item informaiton file
-item.file <- ""
+ill_file <- ""
 # Column names for item data
-item.col.names = c()
+ill_col_names = c()
 # This is the item information
-ill.data <- read.csv(item.file, col.names = item.col.names)
+ill_data <- read.csv(ill_file, col.names = ill_col_names)

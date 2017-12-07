@@ -2,14 +2,14 @@
 # Import and Tidy Item Information ____________________________________________
 ###############################################################################
 # Path to the item informaiton file
-item.file <- "C:/DataScience/inputs/Circulation/itemdata.csv"
+item_file <- "C:/DataScience/inputs/Circulation/itemdata.csv"
 # Column names for item data
-item.col.names = c("ItemID","Call#","LCClass","Title")
+item_col_names = c("Item_ID","Call_Number","LC_Class","Title")
 # This is the item information
-item.data <- read.csv(item.file, col.names = item.col.names)
+item_data <- read.csv(item_file, col.names = item_col_names)
 
-rm(item.file, item.col.names)
+rm(item_file, item_col_names)
 
 # This creates a factor with the first letter from the LCClass
-item.data$LCLetter <- as.factor(substring(item.data$LCClass,1,1))
-levels(item.data$LCLetter)
+item_data$LC_Letter <- as.factor(substring(item_data$LC_Class,1,1))
+levels(item_data$LC_Letter)

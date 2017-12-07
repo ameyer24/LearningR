@@ -5,7 +5,8 @@
 # Simple Bar Plot with data filtered by factors
 # Plotted by Calendar Year
 circ.data %>%
-  filter(PatronGroups == "Staff") %>%
+  filter(Patron == "Undergraduate") %>%
+  filter(ItemGroup2 == "Laptops") %>%
   ggplot(aes(x=year(ChargeDate))) + 
     geom_bar(aes(fill = ItemGroup2))
 
