@@ -1,1 +1,0 @@
-Place to put sample data. Right now, accepts only Excel and CSV files.

@@ -1,27 +1,25 @@
 ###############################################################################
 # Usage Overivew Functions ____________________________________________________
 ###############################################################################
-
 # Returns table of usage for a particular database between two years.
-usage.select.database <- function(DatabaseName,
+select_database_usage <- function(DatabaseName,
                                   StartYear,
                                   EndYear,
-                                  Action = all.actions){
+                                  Action = all_actions){
   DB1 %>%
     filter(Database %in% DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
     filter(User_Activity %in% Action) %>%
     spread(Date,Usage) %>%
-    write_csv(paste(output.folder, "usage.table.1.csv",sep="/")) %>%
+    write_csv(paste(output_folder, "usage.table.1.csv",sep="/")) %>%
     return()
 }
-test <- usage.select.database("Communication & Mass Media Complete", 2014, 2018)
+test <- select_database_usage("Database A", 2014, 2018)
 
-# Graphing database usage.
-usage.graph.database <- function(DatabaseName,
+graph_database_usage <- function(DatabaseName,
                                  StartYear,
                                  EndYear,
-                                 Action = all.actions){
+                                 Action = all_actions){
   DB1 %>%
     filter(Database %in% DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
@@ -31,13 +29,13 @@ usage.graph.database <- function(DatabaseName,
     scale_x_yearmon() +
     facet_grid(User_Activity ~ ., scales = "free")
 }
-usage.graph.database("Communication & Mass Media Complete", 2014, 2018)
+graph_database_usage("Database A", 2014, 2018)
 
-# Sums database usage by academic term.
-usage.sum.database.acad.term <- function(DatabaseName,
+# Summarize database usage by academic term.
+summarize_usage_academic_term <- function(DatabaseName,
                                          StartYear,
                                          EndYear,
-                                         Action = all.actions){
+                                         Action = all_actions){
   DB1 %>%
     filter(Database %in% DatabaseName) %>%
     filter(Date >= StartYear, Date <= EndYear) %>%
@@ -50,17 +48,25 @@ usage.sum.database.acad.term <- function(DatabaseName,
     )) %>%
     group_by(Database,User_Activity,Academic_Term,Year) %>%
     summarize(Usage=sum(Usage)) %>%
-    spread(Academic_Term, Usage) %>%
     rename("User Activity" = "User_Activity")
 }
-test1 <- usage.sum.database.acad.term("SAGE Journals", 2014, 2018)
 
+summarized_usage_academic_term <- summarize_usage_academic_term("Database A", 2014, 2018)
 
-# Graphs database usage based on academic term.
-usage.graph.database.acad.term <- function(DatabaseName,
+# Creates a bar plot of the usage data summarized on the academic term.
+ggplot(data = summarized_usage_academic_term,
+       aes(x = Year, y = Usage)) +
+  geom_bar(aes(fill=factor(Year)),
+           stat="identity") +
+  facet_grid(. ~ Academic_Term) +
+  xlab("Year and Academic Term") +
+  ylab("Usage")
+
+# This function goes directly from the dataframe to the barplot.
+graph_usage_academic_term <- function(DatabaseName,
                                            StartYear,
                                            EndYear,
-                                           Action = all.actions){
+                                           Action = all_actions){
   DB1 %>%
     # filters based on database name, date, and user activity
     filter(Database %in% DatabaseName) %>%
@@ -83,5 +89,5 @@ usage.graph.database.acad.term <- function(DatabaseName,
     xlab("Year and Academic Term") +
     ylab("Usage")
 }
-usage.graph.database.acad.term("Communication & Mass Media Complete", 2014, 2018, "Record Views")
+graph_usage_academic_term("Database A", 2014, 2018, "Record Views")
 

@@ -25,7 +25,7 @@ library(knitr)
 ###############################################################################
 
 getwd()
-DB1folder <- "./DB1_reports"
-JR1folder <- "./JR1_reports"
-output.folder <- "./outputs"
+DB1_folder <- "./DB1_reports"
+JR1_folder <- "./JR1_reports"
+output_folder <- "./outputs"
 

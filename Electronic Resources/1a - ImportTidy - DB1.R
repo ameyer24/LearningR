@@ -1,9 +1,8 @@
 ###############################################################################
 # Import Database Usage Information____________________________________________
 ###############################################################################
-
 # Transforms data from the standard Counter Format to a tidy dataframe.
-tidy.DB1reports <- function(df) {
+tidy_reports <- function(df) {
   df %>%
     select(-c(5)) %>%
     gather(Date, Usage, -c(1:4)) %>%
@@ -12,43 +11,47 @@ tidy.DB1reports <- function(df) {
     rename("User_Activity" = "User Activity")
 }
 # This function imports data from CSV files and makes that data tidy.
-csv.importer <- function(file) {
+import_csv <- function(file) {
   file %>%
     read_csv(skip=7, col_names = TRUE) %>%
-    tidy.DB1reports()
+    tidy_reports()
 }
 # This function imports data from Excel files and makes that data tidy.
-excel.importer <- function(file) {
+import_excel <- function(file) {
   file %>%
     read_excel(skip=7, col_names = TRUE) %>%
-    tidy.DB1reports()
+    tidy_reports()
 }
 
 # These functions load DB1 reports from a given folder.
-load.DB1.csv <- function(path) { 
-  csv.files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
-  tables <- lapply(csv.files, csv.importer)
+load_csv <- function(path) { 
+  csv_files <- dir(path, pattern = "*.(CSV|csv)", full.names = TRUE)
+  tables <- lapply(csv_files, import_csv)
   do.call(rbind, tables)
 }
 
-load.DB1.excel <- function(path) { 
-  excel.files <- dir(path, pattern = "*.(XL*|xl*)", full.names = TRUE)
-  tables <- lapply(excel.files, excel.importer)
+load_excel <- function(path) { 
+  excel_files <- dir(path, pattern = "*.(XL*|xl*)", full.names = TRUE)
+  tables <- lapply(excel_files, import_excel)
   do.call(rbind, tables)
 }
 
-DB1.data.csv <- load.DB1.csv(DB1folder)
-DB1.data.excel <- load.DB1.excel(DB1folder)
+DB1_data_csv   <- load_csv(DB1_folder)
+DB1_data_excel <- load_excel(DB1_folder)
 
-DB1 <- unique(rbind(DB1.data.csv,DB1.data.excel))
-
-write_csv(DB1, paste(output.folder, "db1.csv",sep="/"))
+DB1 <- unique(rbind(DB1_data_csv,DB1_data_excel))
 
 # Create a variable with all user actions
 # Need this for later functions to function
-all.actions <- unique(DB1$User_Activity)
+all_actions <- unique(DB1$User_Activity)
+all_databases <- unique(DB1$Database)
 
-# Removes temporary dataframes to keep things neat
-rm(DB1.data.csv,DB1.data.excel)
+###############################################################################
+# Remove Unneeded Information _________________________________________________
+###############################################################################
+# Remove partial dataframes
+rm(DB1_data_csv,DB1_data_excel)
+# Remove import functions
+rm(tidy_reports,import_csv,import_excel,load_csv,load_excel)
 
-all.databases <- unique(DB1$Database)
+
