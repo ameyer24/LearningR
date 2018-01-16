@@ -1,0 +1,44 @@
+---
+title: "Circulation Report"
+author: "AJM"
+date: "November 30, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+	message = FALSE,
+	warning = FALSE)
+
+# Get code from other files.
+source('1a - Import Circulation Data.R')
+source('1b - Import Item Information.R')
+source('2a - Transform.R')
+source('2b - Merge.R')
+
+```
+
+## Interesting Talking Points
+
+```{r}
+circ.data %>%
+  filter(PatronSimple == "Student") %>%
+  filter(ItemSimple2 != "Archives") %>%
+  ggplot(aes(x=AcademicYear)) + 
+  geom_bar() +
+  facet_grid(ItemSimple2 ~ .) + 
+  theme(axis.text.x = element_text(angle=90))
+```
+
+
+## Overall Circulation
+
+## Circulation by Patron Group
+
+## Circulation by Item Type
+
+## Book Circulation
+
