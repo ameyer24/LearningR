@@ -56,11 +56,13 @@ summarized_usage_academic_term <- summarize_usage_academic_term("Database A", 20
 # Creates a bar plot of the usage data summarized on the academic term.
 ggplot(data = summarized_usage_academic_term,
        aes(x = Year, y = Usage)) +
-  geom_bar(aes(fill=factor(Year)),
-           stat="identity") +
+  geom_bar(aes(fill=factor(Year)),stat="identity") +
   facet_grid(. ~ Academic_Term) +
-  xlab("Year and Academic Term") +
-  ylab("Usage")
+  labs(y = "Usage", fill="Year") +
+  ggtitle("Database Usage by Academic Term") +
+  theme(axis.title.x = element_blank(),
+        axis.text.x  = element_blank(),
+        axis.ticks.x = element_blank())
 
 # This function goes directly from the dataframe to the barplot.
 graph_usage_academic_term <- function(DatabaseName,

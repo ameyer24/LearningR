@@ -25,34 +25,8 @@ percent_difference <- function(Cost1, Cost2){
 # Financial Overview Functions ________________________________________________
 ###############################################################################
 
-# Sums the cost of databases by fiscal year.
-cost.overview.table <- function(StartYear, EndYear){
-  DB1_financial %>%
-    filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
-    group_by(Fiscal_Year) %>%
-    summarize(Total_Cost= dollar(sum(Cost))) %>%
-    spread(Fiscal_Year, Total_Cost) %>%
-    write_csv(paste(output_folder, "cost.1.csv",sep="/"))
-}
-test = cost.overview.table(2012,2018)
-
-# Plot the total cost of databases by fiscal year.
-cost.overview.graph <- function(StartYear,EndYear){
-  DB1_financial %>%
-    filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
-    group_by(Fiscal_Year) %>%
-    summarize(Total_Cost= (sum(Cost))) %>%
-    ggplot(aes(Total_Cost)) +
-    geom_bar(aes(Fiscal_Year, Total_Cost),stat="identity", fill="darkgreen") +
-    ggtitle("Cost of Online Resources") +
-    xlab("Fiscal Year") +
-    ylab("Cost") +
-    scale_y_continuous(labels = dollar)
-}
-cost.overview.graph(2013,2018)
-
-# Sums the cost of databases by fund and fiscal year.
-cost.overview.table.fund <- function(StartYear,
+# Summarize the cost of databases by fund and fiscal year.
+financial_summary_fund_FY <- function(StartYear,
                                      EndYear,
                                      SelectFund = all_funds){
   DB1_financial %>%
@@ -64,11 +38,10 @@ cost.overview.table.fund <- function(StartYear,
     spread(Fiscal_Year, Total_Cost) %>%
     write_csv(paste(output_folder, "cost.2.csv",sep="/"))
 }
-test = cost.overview.table.fund(2014,2018)
+test = financial_summary_fund_FY(2014,2018)
 
-# Plot the cost of databases by fund and fiscal year.
-# Accepts an option parameter to specify fund; defaults to all funds.
-cost.overview.table.fund <- function(StartYear,
+
+financial_summary_fund_FY_graph <- function(StartYear,
                                      EndYear,
                                      SelectFund = all_funds){
   DB1_financial %>%
@@ -86,12 +59,11 @@ cost.overview.table.fund <- function(StartYear,
     ylab("Cost") +
     scale_y_continuous(labels = dollar)
 }
-cost.overview.table.fund(2014,2018,"Business")
-
+financial_summary_fund_FY_graph(2014, 2018)
 
 # Cost of databases grouped by fund and fiscal year.
 # Accepts an option parameter to specify fund; defaults to all funds.
-cost.overview.table.db <- function(StartYear,
+financial_details_fund_FY <- function(StartYear,
                                    EndYear,
                                    SelectFund = all_funds){
   DB1_financial %>%
@@ -103,7 +75,7 @@ cost.overview.table.db <- function(StartYear,
     spread(Fiscal_Year, Total_Cost) %>%
     write_csv(paste(output_folder, "cost.3.csv",sep="/"))
 }
-test = cost.overview.table.db(2014, 2018,"Business")
+test = financial_details_fund_FY(2014, 2018)
 
 
 ###############################################################################
@@ -111,7 +83,7 @@ test = cost.overview.table.db(2014, 2018,"Business")
 ###############################################################################
 
 # Summarize the change in cost for one database over time.
-cost.database.change <- function(DatabaseName,
+financial_change_database_FY <- function(DatabaseName,
                                  StartYear,
                                  EndYear){
   DB1_financial %>%
@@ -129,13 +101,13 @@ cost.database.change <- function(DatabaseName,
            "Percent Change" = "Percent_Change")
 }
 
-test <- cost.database.change("Business Source Complete", 2013, 2018)
+test <- financial_change_database_FY("Business Source Complete", 2013, 2018)
 test <- cost.database.change(c("Business Source Complete","New Testament Abstracts"), 2013, 2018)
 
 # Graphing database pricing.
-cost.database.graph <- function(DatabaseName,
-                                StartYear,
-                                EndYear){
+financial_change_database_FY_graph <- function(DatabaseName,
+                                               StartYear,
+                                               EndYear){
   DB1_financial %>%
     filter(Database %in% DatabaseName) %>%
     filter(Fiscal_Year >= StartYear, Fiscal_Year <= EndYear) %>%
@@ -145,52 +117,14 @@ cost.database.graph <- function(DatabaseName,
     xlab("Fiscal Year") +
     ylab("Cost of Subscription")
 }
-cost.database.graph ("Business Source Complete", 2013, 2018)
-
-###############################################################################
-# Cost Increase Functions _____________________________________________________
-###############################################################################
-# I wanted a function to compute average price increases
-# Still a work in progress but it's working decently well now.
-
-get.percent.change <- function(){
-  DB1_financial %>%
-    select(-Publisher,-Platform,-Order_Agent,-Order_Term) %>%
-    group_by(Database) %>%
-    mutate(Percent_Increase = (Cost-lag(Cost))/lag(Cost)) %>%
-    arrange(Database,Fiscal_Year) %>%
-    subset(!is.na(Percent_Increase))
-}
-
-DB1.percent.change <- get.percent.change()
-
-# I want to manually remove some values.
-DB1.percent.change <- DB1.percent.change %>%
-  filter(!(Database == "Project MUSE" & Fiscal_Year == 2017)) %>%
-  filter(!(Database == "SAGE Premier ejournals (2012)" & Fiscal_Year == 2017)) %>%
-  filter(!(Database == "JSTOR" & Fiscal_Year == 2015)) %>%
-  filter(!(Database == "Foundation Directory Online")) %>%
-  filter(!(Database == "STAT!Ref Online Resource"))
-
-get.percent.change.fund <- function(StartYear, EndYear, SelectFund = all.funds){
-  DB1.percent.change %>%
-    filter(Fiscal_Year <= EndYear) %>%
-    filter(Fiscal_Year >= StartYear) %>%
-    filter(Fund %in% SelectFund) %>%
-    ungroup() %>%
-    group_by(Database, Fund, Fiscal_Year) %>%
-    summarize(Average_Percent_Increase = percent(mean(Percent_Increase))) %>%
-    spread(Fiscal_Year,Average_Percent_Increase) %>%
-    arrange(Fund)
-}
-
+financial_change_database_FY_graph("Business Source Complete", 2013, 2018)
 
 ###############################################################################
 # Other Financial Functions ___________________________________________________
 ###############################################################################
 
 # Function to return Fund from DB1.fin given database name.
-get.fund <-function(DatabaseName) {
+get_fund <-function(DatabaseName) {
   DB1_financial %>%
     filter(Database %in% DatabaseName) %>%
     select(Fund) %>%
@@ -199,12 +133,13 @@ get.fund <-function(DatabaseName) {
 }
 
 # Function to return all the resources charged to a given fund
-get.databases <- function(FundName){
+get_databases <- function(FundName){
   DB1_financial %>%
     filter(Fund %in% FundName) %>%
     select(Database) %>%
     unique() %>%
     return()
 }
-get.databases("Seminary")
+get_fund("Old Testament Abstracts")
+get_databases("Seminary")
 
