@@ -4,7 +4,7 @@
 # Path to the item informaiton file
 item_file <- "C:/DataScience/inputs/Circulation/itemdata.csv"
 # Column names for item data
-item_col_names = c("Item_ID","Call_Number","LC_Class","Title")
+item_col_names = c("Item_ID","Call_Number","LC_Class","Title","Item_Type")
 # This is the item information
 item_data <- read.csv(item_file, col.names = item_col_names)
 

@@ -3,19 +3,26 @@ class <- "QA"
 ###############################################################################
 # Overview _______________________________________________________________
 ###############################################################################
-# How many items are in that LC range?
+# How many items are in that LC class?
 sample1 <- item_data %>%
   filter(LC_Class == class)
 
-# How many different circulation transactions?
-sample2 <- book_circ_data %>%
-  filter(LC_Class ==class)
+# Graph of 
+test1 <- function(LC_Range){
+  item_data %>%
+    filter(LC_Class==LC_Range) %>%
+    ggplot(aes(x=Item_Type)) +
+    geom_bar()
+}
 
-# How many item have circulated?
-# group by item ID, count Circ_ID?
-sample3 <- sample2 %>%
-  group_by(Item_ID) %>%
-  count()
+test1(class)
+
+# Add circulation information from circ_data table.
+sample2 <- merge(x=sample1, y=circ_data, by="Item_ID", all.x = TRUE)
+# Items wiht 0 circs are NA, items with 5 circs are listed 5 times.
+
+
+
 
 ###############################################################################
 # Book Circulation Data________________________________________________________
