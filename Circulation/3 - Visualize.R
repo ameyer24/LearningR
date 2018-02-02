@@ -37,3 +37,10 @@ circ_data %>%
   ggplot(aes(x=Patron_Group)) +
   geom_bar()
 
+
+book_circ_data %>%
+  group_by(Charge_Year,LC_Letter) %>%
+  count() %>%
+  ggplot(aes(x=Charge_Year, y=n, color=LC_Letter)) +
+  geom_line(aes(group = LC_Letter))
+  

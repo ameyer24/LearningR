@@ -1,8 +1,11 @@
 # Merge the circulation transactions data and the item data.
 # Keeps all circ data; includes item data when it matchs by ItemID.
 
+
 # Merge after transforming!
-item.circ.data <- merge(x = circ.data, y= item.data, by = "ItemID", all.x = TRUE)
+circ_item_data <- merge(x = circ_data, y= item_data, by = "Item_ID", all.x = TRUE)
 
 # Gets only book circulation data.
-book.circ.data <- filter(item.circ.data, ItemType=="Books")
+book_circ_data <- filter(circ_item_data, Item_Type=="Books")
+
+
