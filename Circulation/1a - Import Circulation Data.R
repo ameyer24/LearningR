@@ -4,7 +4,6 @@
 # Load Packages
 library(tidyverse)
 library(lubridate)
-library(data.table)
 
 ###############################################################################
 # Import and Tidy _____________________________________________________________
