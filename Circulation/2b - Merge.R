@@ -7,4 +7,6 @@ circ_item_data <- merge(x = circ_data, y= item_data, by = c("Item_ID","Item_Type
 # Gets only book circulation data.
 book_circ_data <- filter(circ_item_data, Item_Type=="Books")
 
+all_data <- merge(x = circ_data, y= item_data, by = c("Item_ID","Item_Type","Item_Group"), all = TRUE)
 
+all_book_data <- filter(all_data, Item_Type == "Books")

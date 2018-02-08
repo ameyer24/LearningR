@@ -1,7 +1,7 @@
 ---
-title: "Circulation Report"
+title: "Circulation Report For Brandel Library"
 author: "AJM"
-date: "November 30, 2017"
+date: 
 output:
   pdf_document: default
   html_document: default
@@ -20,25 +20,24 @@ source('2a - Transform.R')
 source('2b - Merge.R')
 
 ```
+# Circulation By Conspectus Category
 
-## Interesting Talking Points
+This graph counts the number of circulations transactions by year.
 
 ```{r}
-circ.data %>%
-  filter(PatronSimple == "Student") %>%
-  filter(ItemSimple2 != "Archives") %>%
-  ggplot(aes(x=AcademicYear)) + 
-  geom_bar() +
-  facet_grid(ItemSimple2 ~ .) + 
-  theme(axis.text.x = element_text(angle=90))
+div="Education"
+
+book_circ_fun2 <- function(division){
+  book_circ_data %>% 
+  filter(Division == division) %>%
+  filter(Patron_Group == "Student") %>%
+  #filter(Loan_Cat_Simple == "Regular") %>% 
+  group_by(Division, Category, Charge_Year,Loan_Cat_Simple) %>%
+  summarise(count=n()) %>%
+  ggplot(aes(x=Charge_Year,y=count)) +
+  geom_line(aes(color=Category)) +
+  facet_grid(.~Loan_Cat_Simple)
+}
+book_circ_fun2(div)
 ```
-
-
-## Overall Circulation
-
-## Circulation by Patron Group
-
-## Circulation by Item Type
-
-## Book Circulation
 
