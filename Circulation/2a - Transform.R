@@ -96,3 +96,29 @@ circ_data$Item_Circ_Group <- ifelse(circ_data$Item_Group == "Books",
                                        paste("Book - Reserve"),
                                        paste("Book - Regular")),
                                 paste(circ_data$Item_Group))
+
+###############################################################################
+# Transformations - Collapsing Factors - Item Data_____________________________
+###############################################################################
+
+item_data$Item_Group <- fct_collapse(item_data$Item_Type,
+                                     Archives  = c("Arch-Covenant",
+                                                   "Archives"),
+                                     Books     = c("Books",
+                                                   "Periodicals",
+                                                   "Reference",
+                                                   "Reserve--24-Hour",
+                                                   "Reserve--7-Day",
+                                                   "Reserve--LUO (2 hr)",
+                                                   "Theses"),
+                                     AV        = c("Circulating Video",
+                                                   "Sound Recording"),
+                                     Equipment = c("EQ-1 day",
+                                                   "EQ-3 day",
+                                                   "EQ-6 hour",
+                                                   "EQ-Kindle"),
+                                     Laptops   = c("EQ-Laptop"),
+                                     Other     = c("Games and Realia",
+                                                   "Lockers",
+                                                   ""))
+

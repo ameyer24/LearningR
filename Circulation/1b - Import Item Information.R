@@ -13,4 +13,3 @@ rm(item_file, item_col_names)
 # This creates a factor with the first letter from the LCClass
 item_data$LC_Letter <- as.factor(substring(item_data$LC_Class,1,1))
 levels(item_data$LC_Letter)
-rm(item_data)
