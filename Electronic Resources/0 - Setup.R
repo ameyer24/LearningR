@@ -29,3 +29,4 @@ DB1_folder <- "./DB1_reports"
 JR1_folder <- "./JR1_reports"
 output_folder <- "./outputs"
 
+Test
